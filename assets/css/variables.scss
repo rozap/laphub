@@ -1,0 +1,49 @@
+$editor-color: #1e1e1e;
+$font-color: #606c76;
+$link-color-hover: darken($editor-color, 10);
+$black: black;
+$gray: #eaeaea;
+$gray-dark: darken($gray, 20);
+$gray-darker: darken($gray, 30);
+$gray-light: lighten($gray, 5);
+$gray-lighter: lighten($gray, 7);
+
+$box-shadow-color: $gray-lighter;
+$hover-background: $gray-light;
+
+$color-primary: darken(#60beb0, 10);
+$color-primary-light: lighten($color-primary, 30);
+$color-yellow: #f8d1c7;
+$color-orange: #c59f4a;
+$color-red: #ed644d;
+$loader-color: $color-yellow;
+
+$base-padding: 16px;
+$container-width: 132.0rem;
+$border-radius: 4px;
+$thumb-size: 170px;
+$thumb-size-xs: 72px;
+
+$link-color: $color-primary;
+$border-color: $gray;
+
+$footer-height: 40px;
+
+$font-weight-bold: 800;
+
+@mixin box-shadow {
+  box-shadow: 1px 1px 1px $box-shadow-color;
+}
+
+$mobile-cutoff: 500px;
+@mixin mobile {
+  @media (max-width: #{$mobile-cutoff}) {
+    @content;
+  }
+}
+
+@mixin desktop {
+  @media (min-width: #{$mobile-cutoff + 1}) {
+    @content;
+  }
+}

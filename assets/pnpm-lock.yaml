@@ -1,0 +1,13 @@
+lockfileVersion: 5.3
+
+specifiers:
+  uplot: ^1.6.21
+
+dependencies:
+  uplot: 1.6.21
+
+packages:
+
+  /uplot/1.6.21:
+    resolution: {integrity: sha1-OQMPZNzPPHd84swEdC1GERzux/g=, tarball: https://repo.socrata.com:443/artifactory/api/npm/npm-virtual/uplot/-/uplot-1.6.21.tgz}
+    dev: false
