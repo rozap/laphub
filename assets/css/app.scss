@@ -2,15 +2,9 @@
 @import "./phoenix.scss";
 @import "./uplot.scss";
 @import "./variables.scss";
-
-.laps {
-  width: 100%;
-  min-height: 500px;
-
-}
-
-
-
+@import "./laps.scss";
+@import "./leaflet.scss";
+@import "./components.scss";
 * {
   box-sizing: border-box;
 }

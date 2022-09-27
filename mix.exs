@@ -53,6 +53,9 @@ defmodule Laphub.MixProject do
       {:argon2_elixir, "~> 1.2"},
       {:slugger, "~> 0.3.0"},
       {:uuid, "~> 1.1"},
+      {:finch, "~> 0.12"},
+      {:rocksdb, "~> 1.0"},
+      {:tzdata, "~> 1.1"}
     ]
   end
 

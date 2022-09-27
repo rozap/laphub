@@ -10,6 +10,8 @@ import Config
 config :laphub,
   ecto_repos: [Laphub.Repo]
 
+config :elixir, :time_zone_database, Tzdata.TimeZoneDatabase
+
 # Configures the endpoint
 config :laphub, LaphubWeb.Endpoint,
   url: [host: "localhost"],

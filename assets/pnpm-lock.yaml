@@ -1,13 +1,37 @@
-lockfileVersion: 5.3
+lockfileVersion: 5.4
 
 specifiers:
+  '@types/leaflet': 1.7.11
+  leaflet: 1.8.0
+  underscore: 1.13.4
   uplot: ^1.6.21
 
 dependencies:
+  '@types/leaflet': 1.7.11
+  leaflet: 1.8.0
+  underscore: 1.13.4
   uplot: 1.6.21
 
 packages:
 
+  /@types/geojson/7946.0.8:
+    resolution: {integrity: sha512-1rkryxURpr6aWP7R786/UQOkJ3PcpQiWkAXBmdWc7ryFWqN6a4xfK7BtjXvFBKO9LjQ+MWQSWxYeZX1OApnArA==}
+    dev: false
+
+  /@types/leaflet/1.7.11:
+    resolution: {integrity: sha512-VwAYom2pfIAf/pLj1VR5aLltd4tOtHyvfaJlNYCoejzP2nu52PrMi1ehsLRMUS+bgafmIIKBV1cMfKeS+uJ0Vg==}
+    dependencies:
+      '@types/geojson': 7946.0.8
+    dev: false
+
+  /leaflet/1.8.0:
+    resolution: {integrity: sha512-gwhMjFCQiYs3x/Sf+d49f10ERXaEFCPr+nVTryhAW8DWbMGqJqt9G4XuIaHmFW08zYvhgdzqXGr8AlW8v8dQkA==}
+    dev: false
+
+  /underscore/1.13.4:
+    resolution: {integrity: sha512-BQFnUDuAQ4Yf/cYY5LNrK9NCJFKriaRbD9uR1fTeXnBeoa97W0i41qkZfGO9pSo8I5KzjAcSY2XYtdf0oKd7KQ==}
+    dev: false
+
   /uplot/1.6.21:
-    resolution: {integrity: sha1-OQMPZNzPPHd84swEdC1GERzux/g=, tarball: https://repo.socrata.com:443/artifactory/api/npm/npm-virtual/uplot/-/uplot-1.6.21.tgz}
+    resolution: {integrity: sha1-OQMPZNzPPHd84swEdC1GERzux/g=}
     dev: false

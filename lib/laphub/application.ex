@@ -1,21 +1,22 @@
 defmodule Laphub.Application do
-  # See https://hexdocs.pm/elixir/Application.html
-  # for more information on OTP Applications
-  @moduledoc false
-
   use Application
 
   @impl true
   def start(_type, _args) do
+    Laphub.Laps.ActiveSesh.create()
+
     children = [
       # Start the Ecto repository
       Laphub.Repo,
       # Start the Telemetry supervisor
       LaphubWeb.Telemetry,
       # Start the PubSub system
-      {Phoenix.PubSub, name: Laphub.PubSub},
+      Supervisor.child_spec({Phoenix.PubSub, name: Laphub.PubSub}, id: :endpoint_pubsub),
+      Supervisor.child_spec({Phoenix.PubSub, name: Laphub.InternalPubSub}, id: :internal_pubsub),
+
       # Start the Endpoint (http/https)
-      LaphubWeb.Endpoint
+      LaphubWeb.Endpoint,
+      {Finch, name: Laphub.Http.TrackAddict}
       # Start a worker by calling: Laphub.Worker.start_link(arg)
       # {Laphub.Worker, arg}
     ]

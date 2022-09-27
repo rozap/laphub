@@ -1,11 +1,14 @@
-defmodule LaphubWeb.SessionsView do
+defmodule LaphubWeb.SessionsLive do
   use LaphubWeb, :live_view
-  alias LaphubWeb.LapView
+  import LaphubWeb.Components.CommonComponents
+  alias LaphubWeb.SessionView
+  alias Laphub.Laps.Sesh
+  alias Laphub.Repo
 
   def render(assigns) do
     ~H"""
       <div class="sessions container">
-        <h1>Create a session</h1>
+        <h2>Create a session</h2>
 
         <div class="track-select">
           <ul>
@@ -27,14 +30,31 @@ defmodule LaphubWeb.SessionsView do
           <% end %>
         </div>
       </div>
+      <div class="sessions container">
+        <h2>Previous Sessions</h2>
+        <ul>
+          <%= for s <- @previous do %>
+            <li>
+              <%= live_redirect(
+                "#{s.track.title} on #{date_string(s.inserted_at)}",
+                to: Routes.session_path(LaphubWeb.Endpoint, :session, s.id)
+              ) %>
+            </li>
+          <% end %>
+        </ul>
+
+      </div>
     """
   end
 
-  def mount(_params, %{}, socket) do
+  def mount(_params, %{"user" => user}, socket) do
     socket =
-        socket
-        |> assign(:tracks, Laphub.Laps.tracks())
-        |> assign(:selection, nil)
+      socket
+      |> assign(:tracks, Laphub.Laps.tracks())
+      |> assign(:selection, nil)
+      |> assign(:user, user)
+      |> assign(:previous, Laphub.Laps.my_sessions(user.id))
+
     {:ok, socket}
   end
 
@@ -45,13 +65,14 @@ defmodule LaphubWeb.SessionsView do
   end
 
   def handle_event("start", %{}, socket) do
-    session_id = "meh"
+    %{selection: track, user: user} = socket.assigns
+    sesh = Sesh.new(user, track) |> Repo.insert!()
+
     socket =
       socket
       |> put_flash(:info, gettext("Your session has been created"))
-      |> push_redirect(to: Routes.live_path(socket, LapView, session_id))
+      |> push_redirect(to: Routes.session_path(socket, SessionView, sesh))
 
     {:noreply, socket}
   end
-
 end

@@ -25,9 +25,8 @@ defmodule LaphubWeb.Router do
 
     live "/account/register", RegisterLive, :register_form
 
-    live "/laps", SessionsView
-    live "/laps/:s", LapView
-
+    live "/sessions", SessionsLive, :sessions
+    live "/sessions/:session_id", SessionLive, :session
   end
 
   # Other scopes may use custom stacks.
