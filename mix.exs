@@ -55,7 +55,8 @@ defmodule Laphub.MixProject do
       {:uuid, "~> 1.1"},
       {:finch, "~> 0.12"},
       {:rocksdb, "~> 1.0"},
-      {:tzdata, "~> 1.1"}
+      {:tzdata, "~> 1.1"},
+      {:nimble_csv, "~> 1.2"}
     ]
   end
 

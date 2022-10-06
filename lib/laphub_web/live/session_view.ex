@@ -1,9 +1,10 @@
 defmodule LaphubWeb.SessionLive do
   use LaphubWeb, :live_view
   import LaphubWeb.Components.CommonComponents
+  alias LaphubWeb.Components.CommonComponents.DateRangeComponent
   alias Laphub.Integrations.TrackAddictLive
   alias Laphub.Laps.Track
-  alias Laphub.{Laps, Repo}
+  alias Laphub.{Time, Laps, Repo}
   alias Laphub.Laps.{ActiveSesh, Sesh}
   alias Laphub.Laps.Timeseries
 
@@ -11,11 +12,13 @@ defmodule LaphubWeb.SessionLive do
     ~H"""
     <div id="LapViewer" phx-hook="LapViewer">
       <div>
-        <.date_range range={@range} />
+        <%= inspect(@columns) %>
+        <.live_component module={DateRangeComponent} id="session-time-range" range={@range} tz={"America/Los_Angeles"}/>
       </div>
       <div class="lap-view-main">
           <div id="no-map"></div>
 
+          <div class="chart" id="speed"></div>
           <div class="chart" id="temperatures"></div>
           <div class="chart" id="pressures"></div>
           <div class="chart" id="volts"></div>
@@ -47,8 +50,10 @@ defmodule LaphubWeb.SessionLive do
       |> assign(:client_id, "131355221")
       |> assign(:sesh, sesh)
       |> assign(:pid, pid)
-      |> assign(:range, clamp_range(pid))
+      |> assign(:range, clamp_range(pid) |> IO.inspect())
       |> assign(:columns, ActiveSesh.columns(pid))
+      |> assign(:selected_columns, default_columns())
+      |> assign(:tz, "America/Los_Angeles")
 
     track = %Track{
       coords: [
@@ -67,9 +72,21 @@ defmodule LaphubWeb.SessionLive do
     {:ok, socket}
   end
 
+  defp default_columns() do
+    MapSet.new([
+      "Speed (MPH)",
+      "coolant_pres",
+      "coolant_temp",
+      "oil_pres",
+      "oil_temp",
+      "rpm",
+      "voltage"
+    ])
+  end
+
   defp clamp_range(pid) do
     {from_key, to_key} = ActiveSesh.range(pid)
-    clamped_from = ActiveSesh.subtract(to_key, 60 * 60)
+    clamped_from = Time.subtract(to_key, 60 * 60)
     {max(clamped_from, from_key), to_key}
   end
 
@@ -82,47 +99,53 @@ defmodule LaphubWeb.SessionLive do
     {:noreply, socket}
   end
 
-  def handle_event("component:" <> which, %{"value" => value}, socket)
-      when which in ["set_from_range", "set_to_range"] do
-    IO.inspect(value)
-    {from_key, to_key} = socket.assigns.range
-    {:ok, d} = NaiveDateTime.from_iso8601(value)
-    new_key = naive_datetime_to_key(d, socket)
-
-    new_range =
-      case which do
-        "set_from_range" -> {new_key, to_key}
-        "set_to_range" -> {from_key, new_key}
-      end
-
-    socket = fetch(assign(socket, :range, new_range))
-    {:noreply, socket}
+  defp fetch_all(socket) do
+    ActiveSesh.columns(socket.assigns.pid)
+    |> Enum.filter(fn c -> MapSet.member?(socket.assigns.selected_columns, c) end)
+    |> IO.inspect()
+    |> Enum.reduce(socket, fn column, socket ->
+      fetch(column, socket)
+    end)
   end
 
-  def naive_datetime_to_key(n, _socket) do
-    {:ok, dt} = DateTime.from_naive(n, "America/Los_Angeles")
-    ActiveSesh.datetime_to_key(dt)
-  end
-
-  defp fetch(socket) do
+  defp fetch(column, socket) do
     {from_key, to_key} = socket.assigns.range
 
     rows =
-      ActiveSesh.stream(socket.assigns.pid, fn kv ->
+      ActiveSesh.stream(socket.assigns.pid, column, fn kv ->
         Timeseries.walk_forward(kv, from_key)
       end)
       |> Stream.take_while(fn {key, _} ->
         key <= to_key
       end)
-      |> Enum.map(fn {key, series} ->
-        %{t: key, series: series}
+      |> Enum.map(fn {key, value} ->
+        %{t: key, value: value}
       end)
 
-    push_event(socket, "set_rows", %{rows: rows})
+    IO.inspect({:set_rows, column})
+    push_event(socket, "set_rows", %{column: column, rows: rows})
+  end
+
+  def handle_info({DateRangeComponent, new_range}, socket) do
+    socket =
+      socket
+      |> assign(:range, new_range)
+      |> fetch_all
+
+    {:noreply, socket}
+  end
+
+  def handle_event("set_range", range_like, socket) do
+    socket =
+      socket
+      |> assign(:range, Time.to_range(range_like, socket.assigns.tz))
+      |> fetch_all
+
+    {:noreply, socket}
   end
 
   def handle_info(:fetch, socket) do
-    {:noreply, fetch(socket)}
+    {:noreply, fetch_all(socket)}
   end
 
   def handle_info({ActiveSesh, {:change, columns, range}}, socket) do
@@ -130,7 +153,10 @@ defmodule LaphubWeb.SessionLive do
   end
 
   def handle_info({ActiveSesh, {:append, key, dimensions}}, socket) do
-    socket = push_event(socket, "append", %{rows: [%{t: key, series: dimensions}]})
+    Enum.reduce(dimensions, socket, fn {column, value} ->
+      push_event(socket, "append", %{rows: [%{t: key, series: dimensions}]})
+    end)
+
     {:noreply, socket}
   end
 

@@ -1,5 +1,8 @@
 # Laphub
 
+## TODO
+* make series toggleable
+* only fetch series that are needed
 
 ## iex
 

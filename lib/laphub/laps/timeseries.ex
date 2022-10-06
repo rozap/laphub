@@ -18,7 +18,20 @@ defmodule Laphub.Laps.Timeseries do
           :rocksdb.open(filename, create_if_missing: true)
       end
 
-    {:ok, {db, path}}
+    handle = {db, path}
+
+    # TODO: This will be buggy when the owner proc dies
+    me = self()
+
+    spawn(fn ->
+      ref = Process.monitor(me)
+
+      receive do
+        {:DOWN, ^ref, _, _, _reason} -> close(handle)
+      end
+    end)
+
+    {:ok, handle}
   end
 
   def destroy_forever({path, db} = both) do
@@ -117,5 +130,12 @@ defmodule Laphub.Laps.Timeseries do
 
   def all(db_path) do
     walk(db_path, :first, :next)
+  end
+
+  def range(db_path) do
+    min_k = walk(db_path, :first, :next) |> Enum.take(1)
+    max_k = walk(db_path, :last, :prev) |> Enum.take(1)
+
+    {min_k, max_k}
   end
 end

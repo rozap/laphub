@@ -1,7 +1,8 @@
 defmodule Laphub.Laps do
   import Ecto.Query
-  alias Laphub.Repo
+  alias Laphub.{Time, Repo}
   alias Laphub.Laps.{Track, Sesh}
+  require Logger
 
   def tracks() do
     Repo.all(from(t in Track))
@@ -34,6 +35,10 @@ defmodule Laphub.Laps do
     alias Phoenix.PubSub
     alias Laphub.Laps.Timeseries
 
+    defmodule State do
+      defstruct [:sesh, :range, all_series: %{}]
+    end
+
     def create() do
       :ets.new(__MODULE__, [:named_table, :public])
     end
@@ -45,6 +50,7 @@ defmodule Laphub.Laps do
     def get_or_start(sesh) do
       case :ets.lookup(__MODULE__, sesh.id) do
         [{_, pid}] ->
+          Logger.info("#{sesh.id} lives at #{inspect(pid)}")
           {:ok, pid}
 
         [] ->
@@ -60,6 +66,7 @@ defmodule Laphub.Laps do
             end
           end)
 
+          Logger.info("#{sesh.id} started at #{inspect(pid)}")
           {:ok, pid}
       end
     end
@@ -70,118 +77,124 @@ defmodule Laphub.Laps do
       GenServer.start(__MODULE__, [sesh])
     end
 
-    defmodule State do
-      defstruct [:sesh, :ts, :columns, :range]
-    end
-
     def init([sesh]) do
-      {:ok, ts} = Timeseries.init(sesh.timeseries)
+      all =
+        Enum.reduce(sesh.series, %{}, fn series, acc ->
+          {_, acc} = add_series(series, acc)
+          acc
+        end)
 
-      {columns, range} = playback_existing(sesh, ts)
+      range = playback_existing_range(sesh, all)
 
       state = %State{
         sesh: sesh,
-        ts: ts,
-        columns: columns,
+        all_series: all,
         range: range
       }
 
       {:ok, state}
     end
 
-    def handle_cast({:event, key, row}, %State{sesh: sesh, ts: ts} = state) do
-      :ok = Timeseries.put(ts, key, row)
+    def merge_range({l1, h1}, {l2, h2}) do
+      {min(l1, l2), max(h1, h2)}
+    end
 
-      new_state = %State{
-        state
-        | columns: update_columns(state.columns, row),
-          range: update_range(state.range, key)
-      }
+    def update_range({l1, h1}, new_key) do
+      {min(l1, new_key), max(h1, new_key)}
+    end
 
-      if new_state != state do
+    defp playback_existing_range(sesh, all_series) do
+      # I guess this is kind of wrong if the pg clock and
+      # our clock drift...
+      ia = Time.to_key(sesh.inserted_at)
+      initial_range = {ia, ia}
+      # It is sorted
+      Enum.reduce(all_series, initial_range, fn {_col, ts}, range ->
+        merge_range(Timeseries.range(ts), range)
+      end)
+    end
+
+    defp add_series(series, all_series) do
+      Logger.info("Adding series: #{series.name}")
+      {:ok, ts} = Timeseries.init(series.path)
+      {ts, Map.put(all_series, series.name, ts)}
+    end
+
+    defp put_entry(%State{sesh: sesh, all_series: all_series} = state, column, key, value) do
+      {ts, state} =
+        case Map.get(all_series, column) do
+          nil ->
+            new_sesh = Repo.update!(Sesh.add_series(sesh, column))
+            new_series = Enum.find(new_sesh.series, fn s -> s.name == column end)
+            {ts, new_all} = add_series(new_series, all_series)
+            Logger.info("Created new series for #{sesh.id} #{column}")
+            # PubSub.broadcast(
+            #   Laphub.InternalPubSub,
+            #   topic(sesh),
+            #   {__MODULE__, {:change, new_state.columns, new_state.range}}
+            # )
+
+            {ts, %State{state | sesh: new_sesh, all_series: new_all}}
+
+          ts ->
+            {ts, state}
+        end
+
+      :ok = Timeseries.put(ts, key, value)
+
+      state
+    end
+
+    def handle_cast({:event, events}, %State{sesh: sesh} = state) do
+      new_state =
+        Enum.reduce(events, state, fn {key, row}, state ->
+          state =
+            Enum.reduce(row, state, fn {column, value}, state ->
+              put_entry(state, column, key, value)
+            end)
+
+          %State{state | range: update_range(state.range, key)}
+        end)
+
+      # TODO: batch optimize
+      Enum.each(events, fn {key, row} ->
         PubSub.broadcast(
           Laphub.InternalPubSub,
           topic(sesh),
-          {__MODULE__, {:change, new_state.columns, new_state.range}}
+          {__MODULE__, {:append, key, row}}
         )
-      end
-
-      PubSub.broadcast(
-        Laphub.InternalPubSub,
-        topic(sesh),
-        {__MODULE__, {:append, key, row}}
-      )
+      end)
 
       {:noreply, new_state}
     end
 
-    def handle_call({:stream, fun}, _, %State{ts: ts} = state) do
-      stream = fun.(ts)
-      {:reply, stream, state}
+    def handle_call({:stream, which, fun}, _, %State{} = state) do
+      case Map.get(state.all_series, which) do
+        nil ->
+          {:reply, [], state}
+
+        ts ->
+          stream = fun.(ts)
+          {:reply, stream, state}
+      end
     end
 
-    def handle_call(:columns, _, %State{columns: columns} = state) do
-      {:reply, columns, state}
+    def handle_call(:columns, _, %State{all_series: all} = state) do
+      {:reply, Map.keys(all), state}
     end
 
     def handle_call(:range, _, %State{range: range} = state) do
       {:reply, range, state}
     end
 
-    defp now() do
-      :erlang.system_time(:microsecond) |> to_string
-    end
-
-    def datetime_to_key(dt) do
-      {:ok, dt} = DateTime.from_naive(dt, "Etc/UTC")
-
-      dt
-      |> DateTime.to_unix(:microsecond)
-      |> to_string
-    end
-
-    def key_to_datetime(key) do
-      {:ok, dt} = DateTime.from_unix(String.to_integer(key), :microsecond)
-      dt
-    end
-
-    def subtract(key, seconds) do
-      {i, ""} = Integer.parse(key)
-      to_string(i - seconds * 1000 * 1000)
-    end
-
-    defp update_columns(existing, row) do
-      MapSet.union(existing, MapSet.new(Map.keys(row)))
-    end
-
-    def update_range({lo, hi}, timestamp) do
-      {min(lo, timestamp), max(hi, timestamp)}
-    end
-
-    defp playback_existing(sesh, ts) do
-      # I guess this is kind of wrong if the pg clock and
-      # our clock drift...
-      ia = datetime_to_key(sesh.inserted_at)
-      initial_range = {ia, ia}
-      # It is sorted
-      Enum.reduce(Timeseries.all(ts), {MapSet.new(), initial_range}, fn {timestamp, row},
-                                                                        {columns, range} ->
-        columns = update_columns(columns, row)
-
-        range =
-          case range do
-            {nil, nil} -> {timestamp, timestamp}
-            {lo, _hi} -> {lo, timestamp}
-          end
-
-        {columns, range}
-      end)
-    end
-
     def publish(pid, %{"label" => label, "value" => value}) do
-      key = now()
+      key = Time.now()
       row = Map.put(%{}, label, value)
-      GenServer.cast(pid, {:event, key, row})
+      GenServer.cast(pid, {:event, [{key, row}]})
+    end
+
+    def publish_all(pid, rows) do
+      GenServer.cast(pid, {:event, rows})
     end
 
     def subscribe(sesh) do
@@ -196,8 +209,8 @@ defmodule Laphub.Laps do
       GenServer.call(pid, :range)
     end
 
-    def stream(pid, fun) do
-      GenServer.call(pid, {:stream, fun})
+    def stream(pid, which, fun) do
+      GenServer.call(pid, {:stream, which, fun})
     end
   end
 end
