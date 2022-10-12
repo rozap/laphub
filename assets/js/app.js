@@ -22,13 +22,17 @@ import {Socket} from "phoenix"
 import {LiveSocket} from "phoenix_live_view"
 import topbar from "../vendor/topbar"
 
-import LapViewer from './lap-viewer'
+import Chart from './lap-viewer'
+import Map from './map';
+import Fault from './fault';
 
 
 let csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content")
 
 const hooks = {
-  LapViewer
+  Chart,
+  Map,
+  Fault
 }
 
 let liveSocket = new LiveSocket("/live", Socket, {

@@ -11,7 +11,8 @@ defmodule LapBasestation do
       {"VBA", :voltage, :volt},
       {"RPM", :rpm, :rpm},
       {"MET", :met, :time},
-      {"RSI", :rsi, :rsi}
+      {"RSI", :rsi, :rsi},
+      {"FLT", :fault, :none}
     ]
 
     def dimensions, do: @dimensions
@@ -96,7 +97,6 @@ defmodule LapBasestation do
     end
 
     def handle_info({:circuits_uart, _port, message}, state) do
-      Logger.info(message)
       state = dispatch(message, state)
       {:noreply, state}
     end
@@ -127,7 +127,6 @@ defmodule LapBasestation do
   defp send_simulation(pid) do
     Enum.each(Handler.dimensions(), fn {prefix, name, units} ->
       value = :rand.uniform() * 100
-      IO.inspect({prefix, name, units, value})
       send(pid, {:circuits_uart, nil, "#{prefix}:#{value}"})
     end)
 

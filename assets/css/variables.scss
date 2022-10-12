@@ -11,11 +11,11 @@ $gray-lighter: lighten($gray, 7);
 $box-shadow-color: $gray-lighter;
 $hover-background: $gray-light;
 
-$color-primary: darken(#60beb0, 10);
+$color-primary: #60beb0;
 $color-primary-light: lighten($color-primary, 30);
-$color-yellow: #f8d1c7;
-$color-orange: #c59f4a;
-$color-red: #ed644d;
+$color-yellow: #fff75b;
+$color-orange: #ffac1d;
+$color-red: #eb2c0b;
 $loader-color: $color-yellow;
 
 $base-padding: 16px;

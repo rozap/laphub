@@ -1,5 +1,4 @@
 import uPlot, { AlignedData } from 'uplot';
-import Leaflet, { ImageOverlay } from 'leaflet';
 import { Track } from './models';
 import _ from 'underscore';
 
@@ -214,10 +213,6 @@ const speedOps = (plugins: uPlot.Plugin[]) => (element: HTMLDivElement): uPlot.O
 };
 
 
-interface Row<T> {
-  t: string,
-  value: T
-}
 
 
 
@@ -251,7 +246,7 @@ class Dimensions<T> {
       this.windows[column].forEach(([ts, value]) => {
         innerLookup[ts] = value;
       });
-      return {...acc, [column]: innerLookup}
+      return { ...acc, [column]: innerLookup }
     }, {});
 
     const time = Object.keys(this.windows).flatMap((column) => {
@@ -265,41 +260,6 @@ class Dimensions<T> {
         return time.map(ts => lookup[column][ts])
       })
     ] as any as AlignedData
-
-
-    // let res = [];
-
-
-    // while (true) {
-    //   let offsets: Record<string, number> = Object.keys(this.windows).reduce((acc, column) => ({ ...acc, [column]: 0}), {});
-    //   let min = null;
-
-
-    //   const row = Object.keys(this.windows).map((column) => {
-    //     const offset = offsets[column];
-    //     return this.windows[column][offset];
-    //   });
-
-    //   const ts = _.min(row.map(([ts, _value]) => ts));
-
-    //   [ts, ...row.map(([rowTimestamp, value]) => {
-    //     if (rowTimestamp === ts) {
-    //       offsets[]
-    //       return value;
-    //     } else {
-    //       return undefined;
-    //     }
-    //   })]
-    //   Object.keys(this.windows).map((column) => {
-
-    //   })
-
-    // }
-
-    // return [
-    //   this.time,
-    //   ...
-    // ] as any as AlignedData;
   }
 }
 
@@ -357,82 +317,64 @@ class Chart<T> {
 }
 
 
-export default {
+type SetRange = (range: RangeLike) => void;
+interface ChartDefinition {
+  series: string[],
+  opts: (el: HTMLDivElement) => uPlot.Options
+}
+const buildChart = (name: string, setRange: SetRange): ChartDefinition => {
+  const plugins: uPlot.Plugin[] = [
+    {
+      hooks: {
+        setSelect: (u: uPlot) => {
+          const from = Math.round(u.posToVal(u.select.left, 'x'));
+          const to = Math.round(u.posToVal(u.select.left + u.select.width, 'x'));
+          setRange({ type: 'unix_millis_range', from, to });
+        }
+      }
+    }
+  ];
+
+  const ChartDefinitions = [
+    { name: 'pressures', series: ['oil_pres', 'coolant_pres'], opts: pressureOpts(plugins) },
+    { name: 'temperatures', series: ['oil_temp', 'coolant_temp'], opts: temperatureOpts(plugins)},
+    { name: 'volts', series: ['voltage'], opts: voltOps(plugins) },
+    { name: 'rpm', series: ['rpm'], opts: rpmOps(plugins)},
+    { name: 'rsi', series: ['rsi'], opts: rsiOps(plugins)},
+    { name: 'speed', series: ['Speed (MPH)'], opts: speedOps(plugins)},
+  ]
+
+  return ChartDefinitions.find(d => d.name === name)!;
+}
+
+const Wut = {
   mounted() {
-    this.handleEvent('init', this.init.bind(this));
-  },
-
-  init({ track }: { track: Track }) {
-    this.initMap(track);
-
     const setRange = (range: RangeLike) => {
       this.pushEvent('set_range', range);
     }
+    const el: HTMLDivElement = this.el;
 
-    const plugins: uPlot.Plugin[] = [
-      {
-        hooks: {
-          setSelect: (u: uPlot) => {
-            const from = Math.round(u.posToVal(u.select.left, 'x'));
-            const to = Math.round(u.posToVal(u.select.left + u.select.width, 'x'));
-            setRange({ type: 'unix_millis_range', from, to });
-          }
-        }
-      }
-    ];
+    const name = el.id;
+    console.log("init", this.el);
 
-    [
-      { name: 'pressures', series: ['oil_pres', 'coolant_pres'], opts: pressureOpts(plugins) },
-      { name: 'temperatures', series: ['oil_temp', 'coolant_temp'], opts: temperatureOpts(plugins)},
-      { name: 'volts', series: ['voltage'], opts: voltOps(plugins)},
-      { name: 'rpm', series: ['rpm'], opts: rpmOps(plugins)},
-      { name: 'rsi', series: ['rsi'], opts: rsiOps(plugins)},
-      { name: 'speed', series: ['Speed (MPH)'], opts: speedOps(plugins)},
-    ].forEach(({name, series, opts}) => {
-      const el = this.el.querySelector('#' + name) as HTMLDivElement;
-      const chart = new Chart(name, () => opts(el), series, el);
-      this.subscribe(series, chart);
-    });
+    const { series, opts } = buildChart(name, setRange);
+    const chart = new Chart(name, () => opts(this.el), series, this.el);
+    this.subscribe(name, series, chart);
   },
 
-  initMap(track: Track) {
-    // var map = Leaflet.map('map').setView([track.coords[0].lat, track.coords[0].lon], 14);
-    // Leaflet.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    //   maxZoom: 19,
-    //   attribution: '© OpenStreetMap'
-    // }).addTo(map);
-  },
-
-  subscribe<T>(columns: string[], c: Chart<T>) {
-    console.log("subscribe")
-    const relevent = columns.reduce((acc, col) => {
-      return {...acc, [col]: true};
-    }, {});
-
-    this.handleEvent('append', ({ column, rows }: { column: string, rows: Row<T>[] }) => {
-      if (relevent[column]) {
+  subscribe<T>(name: string, columns: string[], c: Chart<T>) {
+    columns.forEach(column => {
+      this.handleEvent(`append_rows:${column}`, ({ rows }: { rows: Row<T>[] }) => {
         c.append(column, rows);
-      }
-    });
-    this.handleEvent('set_rows', ({ column, rows }: { column: string, rows: Row<T>[] }) => {
-      if (relevent[column]) {
+      });
+      this.handleEvent(`set_rows:${column}`, ({ column, rows }: { column: string, rows: Row<T>[] }) => {
         c.setRows(column, rows);
-      }
+      });
     });
-
   },
-
-
-
-  // initChart(labels: string[]) {
-  //   const el: HTMLDivElement = this.el;
-
-  //   // if (uplot.select.width === 0) {
-  //   //   console.log(data);
-  //   //   uplot.setData(data);
-  //   // }
-  //   // uplot.hooks.setScale = (u) => {
-  //   //   console.log('scale', u);
-  //   // }
-  // })
 };
+
+
+
+
+export default Wut;

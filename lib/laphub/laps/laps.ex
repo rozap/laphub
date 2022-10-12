@@ -50,7 +50,6 @@ defmodule Laphub.Laps do
     def get_or_start(sesh) do
       case :ets.lookup(__MODULE__, sesh.id) do
         [{_, pid}] ->
-          Logger.info("#{sesh.id} lives at #{inspect(pid)}")
           {:ok, pid}
 
         [] ->
@@ -84,7 +83,11 @@ defmodule Laphub.Laps do
           acc
         end)
 
-      range = playback_existing_range(sesh, all)
+      range = {from_k, to_k} = playback_existing_range(sesh, all)
+
+      from_range = Time.key_to_datetime(from_k)
+      to_range = Time.key_to_datetime(to_k)
+      Logger.info("Started sesh #{sesh.id} with range #{from_range}:#{to_range}")
 
       state = %State{
         sesh: sesh,
@@ -169,14 +172,7 @@ defmodule Laphub.Laps do
     end
 
     def handle_call({:stream, which, fun}, _, %State{} = state) do
-      case Map.get(state.all_series, which) do
-        nil ->
-          {:reply, [], state}
-
-        ts ->
-          stream = fun.(ts)
-          {:reply, stream, state}
-      end
+      {:reply, fun.(Map.get(state.all_series, which)), state}
     end
 
     def handle_call(:columns, _, %State{all_series: all} = state) do
@@ -190,6 +186,7 @@ defmodule Laphub.Laps do
     def publish(pid, %{"label" => label, "value" => value}) do
       key = Time.now()
       row = Map.put(%{}, label, value)
+      Logger.info("pub #{label} #{inspect(value)}")
       GenServer.cast(pid, {:event, [{key, row}]})
     end
 
@@ -211,6 +208,10 @@ defmodule Laphub.Laps do
 
     def stream(pid, which, fun) do
       GenServer.call(pid, {:stream, which, fun})
+    end
+
+    def db(pid, which) do
+      stream(pid, which, fn db -> db end)
     end
   end
 end

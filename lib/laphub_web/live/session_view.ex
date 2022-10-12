@@ -1,41 +1,68 @@
 defmodule LaphubWeb.SessionLive do
   use LaphubWeb, :live_view
   import LaphubWeb.Components.CommonComponents
-  alias LaphubWeb.Components.CommonComponents.DateRangeComponent
+  require Logger
+
+  alias LaphubWeb.Components.{
+    DateRangeComponent,
+    ColumnSelectorComponent,
+    ChartComponent,
+    MapComponent,
+    LaptimesComponent,
+    FaultComponent
+  }
+
   alias Laphub.Integrations.TrackAddictLive
   alias Laphub.Laps.Track
   alias Laphub.{Time, Laps, Repo}
   alias Laphub.Laps.{ActiveSesh, Sesh}
   alias Laphub.Laps.Timeseries
 
+
+
   def render(assigns) do
     ~H"""
-    <div id="LapViewer" phx-hook="LapViewer">
+    <div>
       <div>
-        <%= inspect(@columns) %>
+        <.live_component
+          module={ColumnSelectorComponent}
+          id="column-selector"
+          columns={@columns}
+          selected_columns={MapSet.new(@columns)}
+        />
         <.live_component module={DateRangeComponent} id="session-time-range" range={@range} tz={"America/Los_Angeles"}/>
       </div>
       <div class="lap-view-main">
-          <div id="no-map"></div>
+        <.live_component
+          module={FaultComponent}
+          id="fault-wrap"
+        />
+        <.live_component
+          module={LaptimesComponent}
+          id="laptimes-table"
+          pid={@pid}
+        />
+        <.live_component
+          module={MapComponent}
+          pid={@pid}
+          id="map-wrap" />
 
-          <div class="chart" id="speed"></div>
-          <div class="chart" id="temperatures"></div>
-          <div class="chart" id="pressures"></div>
-          <div class="chart" id="volts"></div>
-          <div class="chart" id="rpm"></div>
-          <div class="chart" id="rsi"></div>
-
-        </div>
+        <%= for {name, columns} <- @charts do %>
+          <.live_component module={ChartComponent}
+            id={"#{name}-chart"}
+            columns={columns}
+            name={name}
+            pid={@pid}
+            range={@range} />
+        <% end %>
+      </div>
 
       <div class="laps-settings">
         <%= label(:client_id, :client_id, "Track Addict Client ID") %>
         <%= text_input :client_id, :client_id, value: "131355221", phx_keyup: "settings:client_id" %>
-        <.primary_button label="Start" click="settings:start_client" />
+        <.primary_button label="Startf" click="settings:start_client" />
       </div>
     </div>
-
-
-
     """
   end
 
@@ -52,7 +79,7 @@ defmodule LaphubWeb.SessionLive do
       |> assign(:pid, pid)
       |> assign(:range, clamp_range(pid) |> IO.inspect())
       |> assign(:columns, ActiveSesh.columns(pid))
-      |> assign(:selected_columns, default_columns())
+      |> assign(:charts, default_charts())
       |> assign(:tz, "America/Los_Angeles")
 
     track = %Track{
@@ -67,21 +94,18 @@ defmodule LaphubWeb.SessionLive do
         track: track
       })
 
-    send(self, :fetch)
-
     {:ok, socket}
   end
 
-  defp default_columns() do
-    MapSet.new([
-      "Speed (MPH)",
-      "coolant_pres",
-      "coolant_temp",
-      "oil_pres",
-      "oil_temp",
-      "rpm",
-      "voltage"
-    ])
+
+  defp default_charts() do
+    [
+      {"temperatures", ["coolant_temp", "oil_temp"]},
+      {"pressures", ["oil_pres", "coolant_pres"]},
+      {"volts", ["voltage"]},
+      {"rpm", ["rpm"]},
+      {"speed", ["Speed (MPH)"]}
+    ]
   end
 
   defp clamp_range(pid) do
@@ -99,53 +123,24 @@ defmodule LaphubWeb.SessionLive do
     {:noreply, socket}
   end
 
-  defp fetch_all(socket) do
-    ActiveSesh.columns(socket.assigns.pid)
-    |> Enum.filter(fn c -> MapSet.member?(socket.assigns.selected_columns, c) end)
-    |> IO.inspect()
-    |> Enum.reduce(socket, fn column, socket ->
-      fetch(column, socket)
-    end)
-  end
+  def handle_event("set_range", range_like, socket) do
+    socket =
+      socket
+      |> assign(:range, Time.to_range(range_like, socket.assigns.tz))
 
-  defp fetch(column, socket) do
-    {from_key, to_key} = socket.assigns.range
-
-    rows =
-      ActiveSesh.stream(socket.assigns.pid, column, fn kv ->
-        Timeseries.walk_forward(kv, from_key)
-      end)
-      |> Stream.take_while(fn {key, _} ->
-        key <= to_key
-      end)
-      |> Enum.map(fn {key, value} ->
-        %{t: key, value: value}
-      end)
-
-    IO.inspect({:set_rows, column})
-    push_event(socket, "set_rows", %{column: column, rows: rows})
+    {:noreply, socket}
   end
 
   def handle_info({DateRangeComponent, new_range}, socket) do
     socket =
       socket
       |> assign(:range, new_range)
-      |> fetch_all
 
     {:noreply, socket}
   end
 
-  def handle_event("set_range", range_like, socket) do
-    socket =
-      socket
-      |> assign(:range, Time.to_range(range_like, socket.assigns.tz))
-      |> fetch_all
-
-    {:noreply, socket}
-  end
-
-  def handle_info(:fetch, socket) do
-    {:noreply, fetch_all(socket)}
+  def handle_info({:push_event, kind, payload}, socket) do
+    {:noreply, push_event(socket, kind, payload)}
   end
 
   def handle_info({ActiveSesh, {:change, columns, range}}, socket) do
@@ -153,9 +148,12 @@ defmodule LaphubWeb.SessionLive do
   end
 
   def handle_info({ActiveSesh, {:append, key, dimensions}}, socket) do
-    Enum.reduce(dimensions, socket, fn {column, value} ->
-      push_event(socket, "append", %{rows: [%{t: key, series: dimensions}]})
-    end)
+    Logger.info("append #{key} #{inspect(dimensions)}")
+
+    socket =
+      Enum.reduce(dimensions, socket, fn {column, value}, socket ->
+        push_event(socket, "append_rows:#{column}", %{rows: [%{t: key, value: value}]})
+      end)
 
     {:noreply, socket}
   end

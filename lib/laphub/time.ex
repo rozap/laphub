@@ -14,9 +14,24 @@ defmodule Laphub.Time do
     to_string(millis)
   end
 
+  def key_to_millis(key), do: String.to_integer(key)
+
   def key_to_datetime(key) do
     {:ok, dt} = DateTime.from_unix(String.to_integer(key), :millisecond)
     DateTime.to_naive(dt)
+  end
+
+  def millis_to_time(millis) do
+    minutes = trunc(millis / 1000 / 60)
+
+    remaining = millis - minutes * 1000 * 60
+
+    %{minutes: minutes, seconds: remaining / 1000}
+  end
+
+  def time_to_label(%{minutes: minutes, seconds: seconds}) do
+    f = :erlang.float_to_binary(seconds, decimals: 3)
+    "#{minutes}:#{String.pad_leading(f, 6, "0")}"
   end
 
   def subtract(key, seconds) do

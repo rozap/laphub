@@ -2,7 +2,6 @@
 @import "./phoenix.scss";
 @import "./uplot.scss";
 @import "./variables.scss";
-@import "./laps.scss";
 @import "./leaflet.scss";
 @import "./components.scss";
 * {
@@ -11,7 +10,7 @@
 a {
   cursor: pointer;
   color: $link-color;
-  text-decoration: none;
+  text-decoration: underline;
   &:hover {
     color: $gray-dark;
  }
@@ -56,12 +55,21 @@ input {
   background-color: $gray-light;
   display: inline-block;
   border-radius: $base-padding;
+  border: 1px solid lighten($gray-light, 10);
   vertical-align: middle;
 
   &.dark {
     background-color: $gray-darker;
     color: $gray-light;
   }
+
+  &.primary {
+    background-color: $color-primary;
+    color: $gray-light;
+    border: 1px solid lighten($color-primary, 10);
+  }
+
+
 }
 
 

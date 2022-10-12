@@ -67,7 +67,7 @@ config :laphub, LaphubWeb.Endpoint,
 config :laphub, LaphubWeb.Endpoint,
   live_reload: [
     patterns: [
-      ~r"priv/static/.*(js|css|png|jpeg|jpg|gif|svg)$",
+      ~r"priv/static/.*(js|css|png|jpeg|jpg|gif|svg|mp3)$",
       ~r"priv/gettext/.*(po)$",
       ~r"lib/laphub_web/(live|views)/.*(ex)$",
       ~r"lib/laphub_web/templates/.*(eex)$"

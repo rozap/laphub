@@ -44,7 +44,7 @@ defmodule Laphub.Laps.Timeseries do
   defp encode(term), do: :erlang.term_to_binary(term)
   defp decode(bin), do: :erlang.binary_to_term(bin)
 
-  def put({db, path}, key, val) do
+  def put({db, path}, key, val) when is_binary(key) do
     :rocksdb.put(db, key, encode(val), [])
     PubSub.broadcast(Laphub.InternalPubSub, path, {key, val})
   end
@@ -57,7 +57,7 @@ defmodule Laphub.Laps.Timeseries do
     PubSub.subscribe(Laphub.InternalPubSub, path)
   end
 
-  def get({db, _}, key) do
+  def get({db, _}, key) when is_binary(key) do
     case :rocksdb.get(db, key, []) do
       {:ok, bin} -> {:ok, decode(bin)}
       other -> other
@@ -133,8 +133,18 @@ defmodule Laphub.Laps.Timeseries do
   end
 
   def range(db_path) do
-    min_k = walk(db_path, :first, :next) |> Enum.take(1)
-    max_k = walk(db_path, :last, :prev) |> Enum.take(1)
+    first_key = fn s ->
+      s
+      |> Stream.map(fn {k, _v} -> k end)
+      |> Enum.take(1)
+      |> case do
+        [k] -> k
+        _ -> nil
+      end
+    end
+
+    min_k = first_key.(walk(db_path, :first, :next))
+    max_k = first_key.(walk(db_path, :last, :prev))
 
     {min_k, max_k}
   end
