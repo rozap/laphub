@@ -13,9 +13,10 @@ defmodule LaphubWeb.TelemetryChannel do
     {:ok, socket}
   end
 
-  def handle_in("sample", message, socket) do
+  def handle_in("sample", %{"label" => label, "value" => value}, socket) do
     {:ok, pid} = ActiveSesh.get_or_start(socket.assigns.sesh)
-    ActiveSesh.publish(pid, message)
+    row = Map.put(%{}, label, value)
+    ActiveSesh.publish(pid, row)
     {:noreply, socket}
   end
 end

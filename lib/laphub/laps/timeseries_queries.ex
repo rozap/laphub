@@ -7,7 +7,7 @@ defmodule Laphub.Laps.TimeseriesQueries do
   end
 
   def laps(sesh_pid, from_lap, to_lap) do
-    case ActiveSesh.db(sesh_pid, "Lap") do
+    case ActiveSesh.db(sesh_pid, "lap") do
       nil ->
         []
 

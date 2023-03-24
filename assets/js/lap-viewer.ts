@@ -1,5 +1,5 @@
 import uPlot, { AlignedData } from 'uplot';
-import { Track } from './models';
+import { Row, Track } from './models';
 import _ from 'underscore';
 
 const pressureOpts = (plugins: uPlot.Plugin[]) => (element: HTMLDivElement): uPlot.Options => {
@@ -16,14 +16,14 @@ const pressureOpts = (plugins: uPlot.Plugin[]) => (element: HTMLDivElement): uPl
         value: (u, v) => v,
         stroke: 'red',
         width: 1
-      },
-      {
-        label: 'Coolant Pressure',
-        scale: 'psi',
-        value: (u, v) => v,
-        stroke: 'blue',
-        width: 1
       }
+      // {
+      //   label: 'Coolant Pressure',
+      //   scale: 'psi',
+      //   value: (u, v) => v,
+      //   stroke: 'blue',
+      //   width: 1
+      // }
     ],
     plugins: [
       {

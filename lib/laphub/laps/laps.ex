@@ -183,10 +183,8 @@ defmodule Laphub.Laps do
       {:reply, range, state}
     end
 
-    def publish(pid, %{"label" => label, "value" => value}) do
+    def publish(pid, row) do
       key = Time.now()
-      row = Map.put(%{}, label, value)
-      Logger.info("pub #{label} #{inspect(value)}")
       GenServer.cast(pid, {:event, [{key, row}]})
     end
 

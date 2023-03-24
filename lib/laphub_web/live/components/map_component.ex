@@ -11,6 +11,7 @@ defmodule LaphubWeb.Components.MapComponent do
 
   def update(assigns, socket) do
     parent = self()
+    # this was the backfill test
     # spawn_link(fn ->
     #   case {
     #     ActiveSesh.db(assigns.pid, "Latitude"),

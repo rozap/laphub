@@ -9,10 +9,10 @@ defmodule LaphubWeb.SessionLive do
     ChartComponent,
     MapComponent,
     LaptimesComponent,
-    FaultComponent
+    FaultComponent,
+    TrackAddictComponent
   }
 
-  alias Laphub.Integrations.TrackAddictLive
   alias Laphub.Laps.Track
   alias Laphub.{Time, Laps, Repo}
   alias Laphub.Laps.{ActiveSesh, Sesh}
@@ -33,10 +33,26 @@ defmodule LaphubWeb.SessionLive do
         <.live_component module={DateRangeComponent} id="session-time-range" range={@range} tz={"America/Los_Angeles"}/>
       </div>
       <div class="lap-view-main">
-        <.live_component
-          module={FaultComponent}
-          id="fault-wrap"
-        />
+        <div class="widgets">
+          <.live_component
+            module={FaultComponent}
+            id="fault-wrap"
+          />
+          <.live_component
+            module={TrackAddictComponent}
+            sesh={@sesh}
+            id="track-addict-wrap"
+          />
+        </div>
+        <%= for {name, columns} <- @charts do %>
+          <.live_component module={ChartComponent}
+            id={"#{name}-chart"}
+            columns={columns}
+            name={name}
+            pid={@pid}
+            range={@range} />
+        <% end %>
+
         <.live_component
           module={LaptimesComponent}
           id="laptimes-table"
@@ -47,21 +63,9 @@ defmodule LaphubWeb.SessionLive do
           pid={@pid}
           id="map-wrap" />
 
-        <%= for {name, columns} <- @charts do %>
-          <.live_component module={ChartComponent}
-            id={"#{name}-chart"}
-            columns={columns}
-            name={name}
-            pid={@pid}
-            range={@range} />
-        <% end %>
       </div>
 
-      <div class="laps-settings">
-        <%= label(:client_id, :client_id, "Track Addict Client ID") %>
-        <%= text_input :client_id, :client_id, value: "131355221", phx_keyup: "settings:client_id" %>
-        <.primary_button label="Startf" click="settings:start_client" />
-      </div>
+
     </div>
     """
   end
@@ -74,7 +78,6 @@ defmodule LaphubWeb.SessionLive do
 
     socket =
       socket
-      |> assign(:client_id, "131355221")
       |> assign(:sesh, sesh)
       |> assign(:pid, pid)
       |> assign(:range, clamp_range(pid) |> IO.inspect())
@@ -84,9 +87,9 @@ defmodule LaphubWeb.SessionLive do
 
     track = %Track{
       coords: [
-        %{"lat" => 45.366111, "lon" => -120.743056}
+        %{"lat" => 47.2538, "lon" => -123.1957}
       ],
-      title: "Oregon Raceway Park"
+      title: "The Ridge Motorsports Park"
     }
 
     socket =
@@ -114,14 +117,7 @@ defmodule LaphubWeb.SessionLive do
     {max(clamped_from, from_key), to_key}
   end
 
-  def handle_event("settings:client_id", %{"value" => value}, socket) do
-    {:noreply, assign(socket, :client_id, value)}
-  end
 
-  def handle_event("settings:start_client", _, socket) do
-    {:ok, pid} = TrackAddictLive.start_link(socket.assigns.client_id, socket.assigns.sesh)
-    {:noreply, socket}
-  end
 
   def handle_event("set_range", range_like, socket) do
     socket =

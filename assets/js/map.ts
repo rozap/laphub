@@ -1,5 +1,5 @@
 import Leaflet, { ImageOverlay } from 'leaflet';
-import { Track } from './models';
+import { Row, Track } from './models';
 
 function TheMap() {
 
@@ -9,6 +9,10 @@ interface Position {
   lat: number, lng: number
 }
 
+interface RowAppend {
+  rows: Row<number>;
+};
+
 const Map = {
 
   mounted() {
@@ -17,8 +21,6 @@ const Map = {
 
   init({ track }: { track: Track }) {
     this.handleEvent('init', this.init.bind(this));
-    console.log('hello map', this.el)
-
     this._map = Leaflet.map('map').setView([track.coords[0].lat, track.coords[0].lon], 14);
     Leaflet.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       maxZoom: 19,
@@ -43,10 +45,31 @@ const Map = {
   },
 
   subscribe(marker: Leaflet.Marker<unknown>) {
-    this.handleEvent('position', (position: Position) => {
-      console.log('position', position);
-      marker.setLatLng(position);
-    })
+    // This was for testing with the backfill
+    // this.handleEvent('position', (position: Position) => {
+    //   marker.setLatLng(position);
+    // });
+
+    let currentPosn: {
+      lat?: number, lng?: number
+    } = {};
+    const updatePosn = () => {
+      if (currentPosn.lat && currentPosn.lng) {
+        marker.setLatLng({
+          lat: currentPosn.lat,
+          lng: currentPosn.lng
+          // ok fine TS
+        });
+      }
+    }
+    this.handleEvent('append_rows:lat', ({ rows }: RowAppend) => {
+      currentPosn = {...currentPosn, lat: rows[0].value};
+      updatePosn();
+    });
+    this.handleEvent('append_rows:lon', ({ rows }: RowAppend) => {
+      currentPosn = {...currentPosn, lng: rows[0].value};
+      updatePosn();
+    });
   }
 }
 

@@ -3,7 +3,7 @@ defmodule LaphubWeb.Components.CommonComponents do
 
   def primary_button(assigns) do
     ~H"""
-    <a phx-click={@click}><%= @label %></a>
+    <a phx-click={@click} phx-target={@myself}><%= @label %></a>
     """
   end
 

@@ -46,22 +46,23 @@ defmodule Laphub.Integrations.TrackAddictLive do
            ],
            "UserOnline" => online
          } <- body do
-      posn = %Position{
-        best_lap: best_lap,
-        best_lap_time: best_lap_time,
-        current_lap: current_lap,
-        heading: heading,
-        accuracy: accuracy,
-        map: map,
-        speed: speed,
-        status: status,
-        top_speed: top_speed,
-        lat: lat,
-        lon: lon,
-        online: online == 1
+      posn = %{
+        "best_lap" => best_lap,
+        "best_lap_time" => best_lap_time,
+        "current_lap" => current_lap,
+        "heading" => heading,
+        "accuracy" => accuracy,
+        "map" => map,
+        "speed" => speed,
+        "status" => status,
+        "top_speed" => top_speed,
+        "lat" => lat,
+        "lon" => lon,
+        "online" => online == 1
       }
 
-      ActiveSesh.publish(sesh, %{position: posn})
+      {:ok, pid} = ActiveSesh.get_or_start(sesh)
+      ActiveSesh.publish(pid, posn)
     else
       oof ->
         Logger.warn("Failed to get trackaddit feed: #{inspect(oof)}")

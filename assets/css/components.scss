@@ -47,21 +47,41 @@
   width: 100%;
   padding: $base-padding;
   margin: $base-padding 0px;
-  font-weight: 900;
-  color: white;
-  a {
-    color: white;
-  }
   cursor: pointer;
+  border: 1px solid $gray;
 
   &.ok {
-    background-color: $color-primary;
+    border-color: $color-primary;
   }
 
   &.not-init {
-    background-color: $color-orange;
+    border-color: $color-orange;
   }
   &.error {
+    font-weight: 900;
+    color: white;
+    border-color: red;
     background-color: $color-red;
+  }
+}
+
+.track-addict {
+  border: 1px solid $gray;
+  padding: $base-padding;
+  &.not-init {
+    border-color: $color-orange;
+  }
+  &.ok {
+    border-color: $color-primary;
+  }
+}
+
+.widgets {
+  display: flex;
+  gap: $base-padding;
+  align-items: baseline;
+  div {
+    width: 50%;
+    height: 100%;
   }
 }
