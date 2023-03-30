@@ -10,7 +10,8 @@ defmodule LaphubWeb.SessionLive do
     MapComponent,
     LaptimesComponent,
     FaultComponent,
-    TrackAddictComponent
+    TrackAddictComponent,
+    TireComponent
   }
 
   alias Laphub.Laps.Track
@@ -38,6 +39,9 @@ defmodule LaphubWeb.SessionLive do
             module={FaultComponent}
             id="fault-wrap"
           />
+          <%= live_render(
+            @socket, TireComponent, id: "tire-wrap"
+          ) %>
           <.live_component
             module={TrackAddictComponent}
             sesh={@sesh}
@@ -155,7 +159,6 @@ defmodule LaphubWeb.SessionLive do
   end
 
   def handle_info({TrackAddictLive, payload}, socket) do
-    IO.inspect({:coords, payload})
     {:noreply, socket}
   end
 end

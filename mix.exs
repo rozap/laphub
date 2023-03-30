@@ -56,7 +56,11 @@ defmodule Laphub.MixProject do
       {:finch, "~> 0.12"},
       {:rocksdb, "~> 1.0"},
       {:tzdata, "~> 1.1"},
-      {:nimble_csv, "~> 1.2"}
+      {:nimble_csv, "~> 1.2"},
+
+      # Just for testing/hacking
+      {:circuits_uart, "~> 1.3"},
+
     ]
   end
 

@@ -81,7 +81,18 @@
   gap: $base-padding;
   align-items: baseline;
   div {
-    width: 50%;
     height: 100%;
+  }
+}
+
+.tire-temperatures {
+  $pixel: 32px;
+  .rows {
+    display: flex;
+    .pixel {
+      display: inline-block;
+      height: $pixel;
+      width: $pixel;
+    }
   }
 }
