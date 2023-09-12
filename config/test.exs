@@ -1,13 +1,16 @@
 import Config
 
+config :laphub,
+  timeseries_root: "/tmp/laphub-test"
+
 # Configure your database
 #
 # The MIX_TEST_PARTITION environment variable can be used
 # to provide built-in test partitioning in CI environment.
 # Run `mix help test` for more information.
 config :laphub, Laphub.Repo,
-  username: "postgres",
-  password: "postgres",
+  username: "xedni",
+  password: "xednipassword",
   hostname: "localhost",
   database: "laphub_test#{System.get_env("MIX_TEST_PARTITION")}",
   pool: Ecto.Adapters.SQL.Sandbox,

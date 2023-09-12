@@ -1,0 +1,16 @@
+.session {
+  display: flex;
+
+  .column-selector {
+    max-width: 320px;
+    border-right: 1px solid var(--muted-border-color);
+    padding: $base-padding;
+  }
+
+  .lap-viewer {
+    flex-grow: 1;
+    .toolbar {
+      border-bottom: 1px solid var(--muted-border-color);
+    }
+  }
+}

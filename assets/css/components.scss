@@ -17,16 +17,6 @@
   }
 }
 
-.column-selector {
-  ul {
-    display: flex;
-    flex-wrap: wrap;
-    li {
-      padding: $base-padding/4;
-    }
-  }
-}
-
 .chart {
   width: 100%;
   min-height: 200px;

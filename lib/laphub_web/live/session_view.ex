@@ -5,7 +5,7 @@ defmodule LaphubWeb.SessionLive do
 
   alias LaphubWeb.Components.{
     DateRangeComponent,
-    ColumnSelectorComponent,
+    ColumnSelector,
     ChartComponent,
     MapComponent,
     LaptimesComponent,
@@ -19,57 +19,6 @@ defmodule LaphubWeb.SessionLive do
   alias Laphub.Laps.Timeseries
 
 
-
-  def render(assigns) do
-    ~H"""
-    <div>
-      <div>
-        <.live_component
-          module={ColumnSelectorComponent}
-          id="column-selector"
-          columns={@columns}
-          selected_columns={MapSet.new(@columns)}
-        />
-        <.live_component module={DateRangeComponent} id="session-time-range" range={@range} tz={"America/Los_Angeles"}/>
-      </div>
-      <div class="lap-view-main">
-        <div class="widgets">
-          <.live_component
-            module={FaultComponent}
-            id="fault-wrap"
-          />
-          <.live_component
-            module={TrackAddictComponent}
-            sesh={@sesh}
-            id="track-addict-wrap"
-          />
-        </div>
-        <%= for {name, columns} <- @charts do %>
-          <.live_component module={ChartComponent}
-            id={"#{name}-chart"}
-            columns={columns}
-            name={name}
-            pid={@pid}
-            range={@range} />
-        <% end %>
-
-        <.live_component
-          module={LaptimesComponent}
-          id="laptimes-table"
-          pid={@pid}
-        />
-        <.live_component
-          module={MapComponent}
-          pid={@pid}
-          id="map-wrap" />
-
-      </div>
-
-
-    </div>
-    """
-  end
-
   def mount(%{"session_id" => id}, %{"user" => user}, socket) do
     sesh = Laps.my_sesh(user.id, id)
 
@@ -80,7 +29,7 @@ defmodule LaphubWeb.SessionLive do
       socket
       |> assign(:sesh, sesh)
       |> assign(:pid, pid)
-      |> assign(:range, clamp_range(pid) |> IO.inspect())
+      |> assign(:range, clamp_range(pid))
       |> assign(:columns, ActiveSesh.columns(pid))
       |> assign(:charts, default_charts())
       |> assign(:tz, "America/Los_Angeles")
@@ -103,11 +52,17 @@ defmodule LaphubWeb.SessionLive do
 
   defp default_charts() do
     [
-      {"temperatures", ["coolant_temp", "oil_temp"]},
-      {"pressures", ["oil_pres", "coolant_pres"]},
+      {"temperatures", [
+        "coolant_temp",
+        # "oil_temp"
+      ]},
+      {"pressures", [
+        "oil_pres",
+        # "coolant_pres"
+      ]},
       {"volts", ["voltage"]},
       {"rpm", ["rpm"]},
-      {"speed", ["Speed (MPH)"]}
+      # {"speed", ["Speed (MPH)"]}
     ]
   end
 
@@ -154,8 +109,53 @@ defmodule LaphubWeb.SessionLive do
     {:noreply, socket}
   end
 
-  def handle_info({TrackAddictLive, payload}, socket) do
-    IO.inspect({:coords, payload})
-    {:noreply, socket}
+
+
+  def render(assigns) do
+    ~H"""
+    <div class="session">
+      <div class="column-selector">
+        <.live_component
+          module={ColumnSelector}
+          id="column-selector"
+          columns={@columns}
+          selected_columns={MapSet.new(@columns)}
+        />
+      </div>
+
+      <div class="lap-viewer">
+        <div class="toolbar">
+          <.live_component module={DateRangeComponent} id="session-time-range" range={@range} tz={"America/Los_Angeles"}/>
+        </div>
+
+        <div class="widgets">
+          <.live_component
+            module={FaultComponent}
+            id="fault-wrap"
+          />
+        </div>
+        <%= for {name, columns} <- @charts do %>
+          <.live_component module={ChartComponent}
+            id={"#{name}-chart"}
+            columns={columns}
+            name={name}
+            pid={@pid}
+            range={@range} />
+        <% end %>
+
+        <.live_component
+          module={LaptimesComponent}
+          id="laptimes-table"
+          pid={@pid}
+        />
+        <.live_component
+          module={MapComponent}
+          pid={@pid}
+          id="map-wrap" />
+
+      </div>
+    </div>
+    """
   end
+
 end

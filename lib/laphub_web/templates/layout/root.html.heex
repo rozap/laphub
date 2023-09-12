@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
   <head>
     <meta charset="utf-8"/>
     <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
@@ -11,25 +11,26 @@
   </head>
   <body>
     <header>
-      <nav role="navigation">
-        <div class="navigation-items">
-          <div>
-            <%= link "laps", to: "/", class: "only-desktop item" %>
+      <nav>
+        <ul>
+          <li><%= link "laps", to: "/", class: "only-desktop item" %></li>
+          <li><%= live_redirect "Sessions", to: Routes.sessions_path(@conn, :sessions), class: "item" %></li>
+
+          <li>
             <a href="/" class="only-mobile mobile-home">
               <%= Icons.home() %>
             </a>
-          </div>
-          <div>
-            <%= if is_logged_in?(@conn) do %>
-              Hello <%= user_display(@conn) %>
-            <% else %>
-              <%= live_redirect "sign up", to: Routes.register_path(@conn, :register_form), class: "item" %>
-              <%= live_redirect "log in", to: Routes.login_path(@conn, :login_form), class: "item" %>
+          </li>
+        </ul>
 
-            <% end %>
-          </div>
-        </div>
-
+        <ul>
+          <%= if is_logged_in?(@conn) do %>
+            <li>Hello <%= user_display(@conn) %></li>
+          <% else %>
+            <li><%= live_redirect "sign up", to: Routes.register_path(@conn, :register_form), class: "item" %></li>
+            <li><%= live_redirect "log in", to: Routes.login_path(@conn, :login_form), class: "item" %></li>
+          <% end %>
+        </ul>
       </nav>
     </header>
     <%= @inner_content %>

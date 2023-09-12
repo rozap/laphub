@@ -59,9 +59,11 @@ For the server, top pane, you shouldn't need to restart it, but if you do, run
 alias Laphub.Repo
 alias Laphub.Laps.{Sesh, ActiveSesh, Timeseries}
 
-{:ok, pid} = Repo.get(Sesh, 3) |> ActiveSesh.get_or_start
+{:ok, pid} = Repo.get(Sesh, 5) |> ActiveSesh.get_or_start
 
-s = ActiveSesh.stream(pid, fn ts ->
+
+
+s = ActiveSesh.stream(pid, "rpm", fn ts ->
   Timeseries.all(ts)
 end)
 ```

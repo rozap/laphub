@@ -40,7 +40,7 @@ defmodule Laphub.Time do
   end
 
   def now() do
-    :erlang.system_time(:millisecond) |> to_string
+    :erlang.system_time(:millisecond)
   end
 
   def to_range(

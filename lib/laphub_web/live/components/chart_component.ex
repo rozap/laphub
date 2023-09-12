@@ -9,6 +9,7 @@ defmodule LaphubWeb.Components.ChartComponent do
 
     parent = self()
 
+
     spawn(fn ->
       Enum.each(assigns.columns, fn column ->
         rows =
@@ -17,6 +18,7 @@ defmodule LaphubWeb.Components.ChartComponent do
               []
 
             kv ->
+
               Timeseries.walk_forward(kv, from_key)
           end)
           |> Stream.take_while(fn {key, _} ->

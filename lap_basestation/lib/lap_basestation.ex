@@ -12,7 +12,8 @@ defmodule LapBasestation do
       {"RPM", :rpm, :rpm},
       {"MET", :met, :time},
       {"RSI", :rsi, :rsi},
-      {"FLT", :fault, :none}
+      {"FLT", :fault, :none},
+      {"GPS", :gps, :none}
     ]
 
     def dimensions, do: @dimensions

@@ -22,7 +22,7 @@ import {Socket} from "phoenix"
 import {LiveSocket} from "phoenix_live_view"
 import topbar from "../vendor/topbar"
 
-import Chart from './lap-viewer'
+import Chart from './chart'
 import Map from './map';
 import Fault from './fault';
 

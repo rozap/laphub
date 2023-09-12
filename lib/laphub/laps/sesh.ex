@@ -8,6 +8,7 @@ defmodule Laphub.Laps.Sesh do
 
     embedded_schema do
       field :name, :string
+      field :type, :string, default: "absolute"
       field :path, :string
     end
   end
@@ -15,9 +16,6 @@ defmodule Laphub.Laps.Sesh do
   schema "lap_sesh" do
     field :title, :string
     field :user_id, :id
-
-    field :timeseries, :string
-
     embeds_many :series, Series, on_replace: :delete
     belongs_to :track, Track
 

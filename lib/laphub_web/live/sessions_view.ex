@@ -71,7 +71,7 @@ defmodule LaphubWeb.SessionsLive do
     socket =
       socket
       |> put_flash(:info, gettext("Your session has been created"))
-      |> push_redirect(to: Routes.session_path(socket, SessionView, sesh))
+      |> push_redirect(to: Routes.session_path(socket, :session, sesh.id))
 
     {:noreply, socket}
   end
