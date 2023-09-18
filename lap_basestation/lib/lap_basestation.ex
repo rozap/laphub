@@ -4,16 +4,17 @@ defmodule LapBasestation do
     require Logger
 
     @dimensions [
-      {"P_O", :oil_pres, :psi},
       {"P_C", :coolant_pres, :psi_x10},
       {"T_O", :oil_temp, :degrees_f},
       {"T_C", :coolant_temp, :degrees_f},
       {"VBA", :voltage, :volt},
+      {"P_O", :oil_pres, :psi},
       {"RPM", :rpm, :rpm},
       {"MET", :met, :time},
       {"RSI", :rsi, :rsi},
       {"FLT", :fault, :none},
-      {"GPS", :gps, :none}
+      {"GPS", :gps, :none},
+      {"SPD", :speed, :mph}
     ]
 
     def dimensions, do: @dimensions
@@ -123,20 +124,5 @@ defmodule LapBasestation do
 
     {:ok, pid} = Circuits.UART.start_link()
     Handler.start_link(pid, port, socket, id)
-  end
-
-  defp send_simulation(pid) do
-    Enum.each(Handler.dimensions(), fn {prefix, name, units} ->
-      value = :rand.uniform() * 100
-      send(pid, {:circuits_uart, nil, "#{prefix}:#{value}"})
-    end)
-
-    :timer.sleep(500)
-    send_simulation(pid)
-  end
-
-  def simulate(id) do
-    {:ok, pid} = up(id)
-    send_simulation(pid)
   end
 end

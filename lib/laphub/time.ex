@@ -21,6 +21,11 @@ defmodule Laphub.Time do
     DateTime.to_naive(dt)
   end
 
+  def key_to_datetime(key, tz) do
+    {:ok, dt} = DateTime.from_unix(String.to_integer(key), :millisecond)
+    DateTime.shift_zone!(dt, tz) |> DateTime.to_naive(dt)
+  end
+
   def millis_to_time(millis) do
     minutes = trunc(millis / 1000 / 60)
 
@@ -40,7 +45,7 @@ defmodule Laphub.Time do
   end
 
   def now() do
-    :erlang.system_time(:millisecond)
+    DateTime.to_unix(DateTime.now!("Etc/UTC"), :millisecond)
   end
 
   def to_range(

@@ -68,7 +68,7 @@ defmodule Laphub.Laps.ActiveSesh do
     }
 
     state =
-      Enum.reduce(sesh.series, state, fn column, state ->
+      Enum.reduce(sesh.series, state, fn %Sesh.Series{name: column}, state ->
         {_ts, state} = get_or_create_timeseries(column, state)
         state
       end)
@@ -155,14 +155,26 @@ defmodule Laphub.Laps.ActiveSesh do
     end
   end
 
+  defp lookup_series(sesh, column) do
+    Enum.find(sesh.series, fn s -> s.name == column end)
+  end
+
   # needed for reads
   defp get_or_create_timeseries(column, state) do
     case Map.get(state.timeseries, column) do
       nil ->
-        new_sesh = Repo.update!(Sesh.add_series(state.sesh, column))
-        new_series = Enum.find(new_sesh.series, fn s -> s.name == column end)
-        Logger.info("Adding series: #{column}")
-        {:ok, ts} = Timeseries.init(new_series.path)
+        {series, new_sesh} = case lookup_series(state.sesh, column) do
+          nil ->
+            Logger.info("Creating new series: #{column}")
+            IO.inspect state.sesh
+            new_sesh = Repo.update!(Sesh.add_series(state.sesh, column) |> IO.inspect)
+            {lookup_series(new_sesh, column), new_sesh}
+
+          series ->
+            {series, state.sesh}
+        end
+        Logger.info("Init series: #{column}")
+        {:ok, ts} = Timeseries.init(series.path)
         # PubSub.broadcast(
         #   Laphub.InternalPubSub,
         #   topic(sesh),

@@ -2,15 +2,21 @@ lockfileVersion: 5.4
 
 specifiers:
   '@types/leaflet': 1.7.11
+  '@types/phoenix_live_view': ^0.15.1
   leaflet: 1.8.0
+  phoenix_typed_hook: file:../deps/phoenix_typed_hook
   underscore: 1.13.4
   uplot: ^1.6.21
 
 dependencies:
   '@types/leaflet': 1.7.11
   leaflet: 1.8.0
+  phoenix_typed_hook: file:../deps/phoenix_typed_hook_iz7pew2hkfdo7ewuv65nmud55u
   underscore: 1.13.4
   uplot: 1.6.21
+
+devDependencies:
+  '@types/phoenix_live_view': 0.15.1
 
 packages:
 
@@ -24,6 +30,14 @@ packages:
       '@types/geojson': 7946.0.8
     dev: false
 
+  /@types/phoenix/1.6.1:
+    resolution: {integrity: sha512-g2/8Ogi2zfiS25jdGT5iDSo5yjruhhXaOuOJCkOxMW28w16VxFvjtAXjBNRo7WlRS4+UXAMj3mK46UwieNM/5g==}
+
+  /@types/phoenix_live_view/0.15.1:
+    resolution: {integrity: sha512-dWKwJ9xqCHW+3TVfCIVC6/6ZMpURlDcu9qakWL89H5iWoSXs5X7gaKKnPXc7a1IKULieZjHBVkCW0Ui9aRf3Bg==}
+    dependencies:
+      '@types/phoenix': 1.6.1
+
   /leaflet/1.8.0:
     resolution: {integrity: sha512-gwhMjFCQiYs3x/Sf+d49f10ERXaEFCPr+nVTryhAW8DWbMGqJqt9G4XuIaHmFW08zYvhgdzqXGr8AlW8v8dQkA==}
     dev: false
@@ -34,4 +48,15 @@ packages:
 
   /uplot/1.6.21:
     resolution: {integrity: sha1-OQMPZNzPPHd84swEdC1GERzux/g=}
+    dev: false
+
+  file:../deps/phoenix_typed_hook_iz7pew2hkfdo7ewuv65nmud55u:
+    resolution: {directory: ../deps/phoenix_typed_hook, type: directory}
+    id: file:../deps/phoenix_typed_hook
+    name: phoenix_typed_hook
+    version: 0.18.2
+    peerDependencies:
+      '@types/phoenix_live_view': ^0.15.1
+    dependencies:
+      '@types/phoenix_live_view': 0.15.1
     dev: false

@@ -1,6 +1,5 @@
 defmodule LaphubWeb.Components.ChartComponent do
   use Phoenix.LiveComponent
-  import LaphubWeb.Components.Util
   alias Laphub.Laps.{ActiveSesh}
   alias Laphub.Laps.Timeseries
 

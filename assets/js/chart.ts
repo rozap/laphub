@@ -1,6 +1,5 @@
-import uPlot, { AlignedData } from 'uplot';
-import { Row, Track } from './models';
-import _ from 'underscore';
+import uPlot from 'uplot';
+import { Widget } from './widget';
 
 
 interface LineChartOpts {
@@ -16,7 +15,7 @@ interface LineChartOpts {
 
 
 
-const makeOptions = (plugins: uPlot.Plugin[], lineChart: LineChartOpts) => (el: HTMLDivElement): uPlot.Options => {
+const makeOptions = (plugins: uPlot.Plugin[], lineChart: LineChartOpts) => (el: HTMLElement): uPlot.Options => {
   return {
     title: lineChart.title,
     width: el.clientWidth,
@@ -42,119 +41,20 @@ const makeOptions = (plugins: uPlot.Plugin[], lineChart: LineChartOpts) => (el: 
   };
 }
 
-class Dimensions<T> {
-  windows: Record<string, [number, T][]> = {};
-
-  constructor(labels: string[]) {
-    labels.forEach(label => {
-      this.windows[label] = [];
-    });
-  }
-
-  append(t: number, column: string, value: T) {
-    this.windows[column].push([t, value]);
-  }
-
-  clear(column: string) {
-    this.windows[column] = [];
-  }
-
-  dump(): AlignedData {
-    // return [
-    //   this.time,
-    //   ...
-    // ] as any as AlignedData;
 
 
-    // this is really slow and can be optimized
-    const lookup = Object.keys(this.windows).reduce((acc, column) => {
-      const innerLookup = {};
-      this.windows[column].forEach(([ts, value]) => {
-        innerLookup[ts] = value;
-      });
-      return { ...acc, [column]: innerLookup }
-    }, {});
-
-    const time = Object.keys(this.windows).flatMap((column) => {
-      return this.windows[column].map(([ts, _value]) => ts)
-    });
-    time.sort();
-
-    return [
-      time,
-      ...Object.keys(this.windows).map((column) => {
-        return time.map(ts => lookup[column][ts])
-      })
-    ] as any as AlignedData
-  }
-}
-
-interface RangeLike {
-  type: 'unix_millis_range',
-  from: number,
-  to: number
-}
-
-class Chart<T> {
-  dimensions: Dimensions<T>;
-  uplot: uPlot;
-  labels: string[];
-  name: string;
-
-  // this should not be necessary, but it seems like there's a bug in uplot
-  // where setData just causes the whole chart to disappear, with no exception
-  // thrown. argh...why.
-  reinit: () => void;
-
-  constructor(name: string, opts: () => uPlot.Options, labels: string[], target: HTMLDivElement) {
-    this.name = name;
-    this.labels = labels;
-    this.dimensions = new Dimensions(labels);
-
-    this.reinit = () => {
-      this.uplot && this.uplot.destroy();
-      this.uplot = new uPlot(opts(), this.dimensions.dump(), target);
-      this.uplot.setScale
-    }
-
-    this.reinit();
-    // to reset the selection
-    // u.setScale('x', {min: 500, max: 1000})
-  }
-
-  private putRows(column: string, rows: Row<T>[]) {
-    rows.forEach(row => {
-      const t = parseInt(row.t) / 1000;
-      this.dimensions.append(t, column, row.value);
-    });
-  }
-
-  append(column: string, rows: Row<T>[]) {
-    this.putRows(column, rows);
-    this.uplot.setData(this.dimensions.dump())
-  }
-
-  setRows = (column: string, rows: Row<T>[]) => {
-    this.dimensions.clear(column);
-    this.putRows(column, rows);
-    this.reinit();
-  }
-}
-
-
-type SetRange = (range: RangeLike) => void;
 interface ChartDefinition {
   series: string[],
-  opts: (el: HTMLDivElement) => uPlot.Options
+  opts: (el: HTMLElement) => uPlot.Options
 }
-function buildChart(name: string, setRange: SetRange): ChartDefinition {
+function buildChart<T>(name: string, w: Widget): ChartDefinition {
   const plugins: uPlot.Plugin[] = [
     {
       hooks: {
         setSelect: (u: uPlot) => {
           const from = Math.round(u.posToVal(u.select.left, 'x'));
           const to = Math.round(u.posToVal(u.select.left + u.select.width, 'x'));
-          setRange({ type: 'unix_millis_range', from, to });
+          w.setRange({ type: 'unix_millis_range', from, to });
         }
       }
     }
@@ -228,35 +128,33 @@ function buildChart(name: string, setRange: SetRange): ChartDefinition {
   return ChartDefinitions.find(d => d.name === name)!;
 }
 
-console.log("buildChart", buildChart)
+class Chart extends Widget {
+  uplot: uPlot | undefined;
 
-const ChartHook = {
-  mounted() {
-    const setRange = (range: RangeLike) => {
-      this.pushEvent('set_range', range);
-    }
-    const el: HTMLDivElement = this.el;
-
+  init() {
+    const el: HTMLElement = this.el as HTMLElement;
     const name = el.id;
-    console.log("BUILDCHART", buildChart, name)
-    const { series, opts } = buildChart(name, setRange);
-    const chart = new Chart(name, () => opts(this.el), series, this.el);
-    this.subscribe(name, series, chart);
-  },
+    this.resetChart();
+  }
 
-  subscribe<T>(name: string, columns: string[], c: Chart<T>) {
-    columns.forEach(column => {
-      this.handleEvent(`append_rows:${column}`, ({ rows }: { rows: Row<T>[] }) => {
-        c.append(column, rows);
-      });
-      this.handleEvent(`set_rows:${column}`, ({ column, rows }: { column: string, rows: Row<T>[] }) => {
-        c.setRows(column, rows);
-      });
-    });
-  },
+  getName() {
+    return this.el.id;
+  }
+
+  resetChart() {
+    const { series, opts } = buildChart(this.getName(), this);
+    series.forEach(this.addColumn, this.dimensions);
+    this.uplot && this.uplot.destroy();
+    this.uplot = new uPlot(opts(this.el), this.dimensions.dump(), this.el);
+  }
+
+  onSetRows(): void {
+    this.resetChart();
+  }
+
+  onAppendRows(): void {
+    this.uplot.redraw();
+  }
 };
 
-
-
-
-export default ChartHook;
+export default Chart;

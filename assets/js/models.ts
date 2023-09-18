@@ -3,7 +3,7 @@ export interface Track {
   coords: {lat: number, lon: number}[]
 }
 
-export interface Row<T> {
+export interface Row {
   t: string,
-  value: T
+  value: any
 };

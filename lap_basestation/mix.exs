@@ -24,6 +24,7 @@ defmodule LapBasestation.MixProject do
       {:circuits_uart, "~> 1.3"},
       {:phoenix_client, "~> 0.11.1"},
       {:jason, "~> 1.0"},
+      {:nimble_csv, "~> 1.2"}
     ]
   end
 end
