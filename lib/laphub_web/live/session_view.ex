@@ -33,18 +33,6 @@ defmodule LaphubWeb.SessionLive do
       |> assign(:charts, default_charts())
       |> assign(:tz, "America/Los_Angeles")
 
-    track = %Track{
-      coords: [
-        %{"lat" => 47.2538, "lon" => -123.1957}
-      ],
-      title: "The Ridge Motorsports Park"
-    }
-
-    socket =
-      push_event(socket, "init", %{
-        track: track
-      })
-
     {:ok, socket}
   end
 
@@ -61,17 +49,18 @@ defmodule LaphubWeb.SessionLive do
          # "coolant_pres"
        ]},
       {"volts", ["voltage"]},
-      {"rpm", ["rpm"]}
-      # {"speed", ["Speed (MPH)"]}
+      {"rpm", ["rpm"]},
+      {"speed", ["speed"]}
     ]
   end
 
   defp clamp_range(pid) do
     {from_key, to_key} = ActiveSesh.range(pid)
     clamped_from = Time.subtract(to_key, 60 * 60)
-    IO.inspect({:from, from_key, :to, to_key})
+    from = max(clamped_from, from_key)
+    IO.inspect({:from, Time.key_to_datetime(from) |> NaiveDateTime.to_iso8601(), :to, Time.key_to_datetime(to_key) |> NaiveDateTime.to_iso8601()})
 
-    {max(clamped_from, from_key), to_key}
+    {from, to_key}
   end
 
   defp print_range({from, to} = range) do
@@ -146,7 +135,7 @@ defmodule LaphubWeb.SessionLive do
         </div>
         <%= for {name, columns} <- @charts do %>
           <div>
-            <h2><%= name %><%= inspect columns %></h2>
+            <p><%= name %><%= inspect columns %></p>
             <.live_component module={ChartComponent}
             id={"#{name}-chart"}
             columns={columns}
@@ -165,6 +154,8 @@ defmodule LaphubWeb.SessionLive do
         <.live_component
           module={MapComponent}
           pid={@pid}
+          columns={["gps", "speed"]}
+          range={@range}
           id="map-wrap" />
 
       </div>

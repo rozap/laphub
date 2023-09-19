@@ -6,7 +6,7 @@ defmodule Laphub.Laps.ActiveSesh do
   alias Laphub.Repo
   alias Laphub.Time
   require Logger
-  alias Laphub.Laps.Reducers.GpsToLap
+  alias Laphub.Laps.Reducers.{GpsToLap, BatchUnfolder}
 
   defmodule State do
     defstruct [:sesh, :range, column_states: %{}, timeseries: %{}]
@@ -100,7 +100,8 @@ defmodule Laphub.Laps.ActiveSesh do
 
   defp reducers() do
     %{
-      "gps" => GpsToLap
+      "gps" => GpsToLap,
+      "speed" => BatchUnfolder
     }
   end
 

@@ -55,6 +55,22 @@ function buildChart<T>(name: string, w: Widget): ChartDefinition {
           const from = Math.round(u.posToVal(u.select.left, 'x'));
           const to = Math.round(u.posToVal(u.select.left + u.select.width, 'x'));
           w.setRange({ type: 'unix_millis_range', from, to });
+        },
+        setCursor: (u: uPlot) => {
+          if (!u.cursor.idx) return;
+          const values = u.series.slice(1).map((s, seriesIdx) => {
+            return {
+              column: s.label,
+              value: u.data[seriesIdx][u.cursor.idx]
+
+            }
+          })
+          w.emit({
+            type: 'hover',
+            k: u.data[0][u.cursor.idx],
+            idx: u.cursor.idx,
+            values
+          });
         }
       }
     }
@@ -112,6 +128,18 @@ function buildChart<T>(name: string, w: Widget): ChartDefinition {
       })
     },
     {
+      name: 'speed', series: ['speed'], opts: makeOptions(plugins, {
+        title: 'Speed',
+        scale: 'speed',
+        toValues: (u, vals, space) => {
+          return vals.map((v) => +v.toFixed(1) + '');
+        },
+        series: [
+          { label: 'speed', color: 'pink', value: (u, v) => v }
+        ]
+      })
+    },
+    {
       name: 'rsi', series: ['rsi'], opts: makeOptions(plugins, {
         title: 'RSI',
         scale: 'rsi',
@@ -153,7 +181,8 @@ class Chart extends Widget {
   }
 
   onAppendRows(): void {
-    this.uplot.redraw();
+    this.uplot.setData(this.dimensions.dump());
+    // this.uplot.redraw();
   }
 };
 

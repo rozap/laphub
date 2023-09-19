@@ -1,75 +1,146 @@
 import Leaflet, { ImageOverlay } from 'leaflet';
 import { Row, Track } from './models';
+import { KV, Widget } from './widget';
+import _ from 'underscore';
 
-function TheMap() {
 
+class SortedSet {
+  underlying: KV[] = [];
+
+  constructor(kv: KV[]) {
+    kv.forEach(this.append);
+  }
+
+  append = ([k, v]: KV) => {
+    const last = this.last();
+    if (last && k <= last[0]) return;
+    this.underlying.push([k, v]);
+  }
+
+  closest = (k: number): KV | undefined => {
+    if (this.empty()) return undefined;
+    const best = undefined;
+    let lo = 0;
+    let hi = this.underlying.length - 1;
+    while (lo < hi) {
+      const mid = lo + Math.floor((hi - lo) / 2);
+      const [mk, mv] = this.underlying[mid];
+      if (mk < k) {
+        lo = mid + 1;
+      } else if (mk > k) {
+        hi = mid - 1;
+      } else {
+        return [mk, mv]
+      }
+    }
+    return this.underlying[lo];
+  }
+
+  empty = () => {
+    return this.underlying.length === 0;
+  }
+
+  last = () => {
+    if (this.empty()) return undefined;
+    return this.underlying[this.underlying.length - 1];
+  }
 }
+
 
 interface Position {
   lat: number, lng: number
 }
 
-interface RowAppend {
-  rows: Row<number>;
-};
+class Map extends Widget {
+  _map: Leaflet.Map;
+  marker: Leaflet.Marker | undefined;
+  sortedSpeeds: SortedSet;
+  sortedCoords: SortedSet;
 
-const Map = {
+  init() {
+    this.hook.handleEvent('map:init', ({ track }: { track: Track }) => {
+      this._map = Leaflet.map('map').setView([track.coords[0].lat, track.coords[0].lon], 14);
+      Leaflet.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '© OpenStreetMap'
+      }).addTo(this.map());
+      this.addMarker(track);
+    });
 
-  mounted() {
-    this.handleEvent('init', this.init.bind(this));
-  },
+    this.sortedSpeeds = new SortedSet([]);
+    this.sortedCoords = new SortedSet([]);
 
-  init({ track }: { track: Track }) {
-    this.handleEvent('init', this.init.bind(this));
-    this._map = Leaflet.map('map').setView([track.coords[0].lat, track.coords[0].lon], 14);
-    Leaflet.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      maxZoom: 19,
-      attribution: '© OpenStreetMap'
-    }).addTo(this.map());
+    this.addColumn('gps');
+    this.addColumn('speed');
 
-    this.subscribe(this.addMarker(track));
-  },
+    this.emitter.on('hover', (hover) => {
+      const kv = this.sortedCoords.closest(hover.k);
+      if (kv) {
+        const coord = kv[1] as Position;
+        this.drawMarker(coord);
+      }
+
+    })
+
+    // this.handleEvent('init', this.init.bind(this));
+    // this.subscribe(this.addMarker(track));
+  }
 
   map(): Leaflet.Map {
     return this._map as Leaflet.Map;
-  },
+  }
 
   addMarker(track: Track) {
+
+  }
+
+  drawMarker({ lat, lng }: { lat: number, lng: number }) {
+    if (this.marker) {
+      this.marker.remove();
+    }
+
     var icon = Leaflet.icon({
       iconUrl: '/images/map-tracker-icon.png',
       iconSize: [16, 16],
-  });
-    const marker = Leaflet.marker([track.coords[0].lat, track.coords[0].lon], { icon });
+    });
+    const marker = Leaflet.marker([lat, lng], { icon });
     marker.addTo(this.map());
-    return marker;
-  },
+    this.marker = marker;
+  }
 
-  subscribe(marker: Leaflet.Marker<unknown>) {
-    // This was for testing with the backfill
-    // this.handleEvent('position', (position: Position) => {
-    //   marker.setLatLng(position);
-    // });
-
-    let currentPosn: {
-      lat?: number, lng?: number
-    } = {};
-    const updatePosn = () => {
-      if (currentPosn.lat && currentPosn.lng) {
-        marker.setLatLng({
-          lat: currentPosn.lat,
-          lng: currentPosn.lng
-          // ok fine TS
-        });
-      }
+  onAppendRows(column: string, rows: KV[]): void {
+    if (column === 'speed') {
+      rows.forEach(this.sortedSpeeds.append);
     }
-    this.handleEvent('append_rows:lat', ({ rows }: RowAppend) => {
-      currentPosn = {...currentPosn, lat: rows[0].value};
-      updatePosn();
-    });
-    this.handleEvent('append_rows:lon', ({ rows }: RowAppend) => {
-      currentPosn = {...currentPosn, lng: rows[0].value};
-      updatePosn();
-    });
+    if (column === 'gps') {
+      rows.forEach(this.sortedCoords.append);
+      this.drawMarker(_.last(rows)[1] as Position);
+
+    }
+  }
+
+  onSetRows(column: string, rows: KV[]): void {
+    if (column === 'speed') {
+
+      this.sortedSpeeds = new SortedSet(rows);
+    }
+
+    if (column === 'gps') {
+      this.sortedCoords = new SortedSet(rows);
+
+      const line = Leaflet.polyline(rows.map((row) => {
+        const { lat, lng } = row[1] as { lat: number, lng: number };
+        return [lat, lng]
+      }));
+      line.setStyle({
+        color: '#ff0000'
+      });
+
+
+      line.addTo(this.map());
+
+
+    }
   }
 }
 

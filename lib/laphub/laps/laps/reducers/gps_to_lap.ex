@@ -13,11 +13,12 @@ defmodule Laphub.Laps.Reducers.GpsToLap do
 
   defp has_crossed?(coord, %{previous_coords: prev_coord, sesh: sesh}) do
 
-    l1 = [prev_coord, coord]
-    l2 = sesh.track.start_finish_line
+    # {y0, x0} = prev_coord
+    # {y1, x1} = coord
 
+    # [{ly0, lx0}, {ly1, lx1}] = sesh.track.start_finish_line
 
-
+    # x0 < lx0 && x1 > lx0 && x0 < lx1 &&
     false
   end
 

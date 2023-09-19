@@ -41,7 +41,7 @@ defmodule Laphub.Time do
 
   def subtract(key, seconds) do
     {i, ""} = Integer.parse(key)
-    to_string(i - seconds * 1000)
+    to_string(i - (seconds * 1000))
   end
 
   def now() do

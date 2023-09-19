@@ -1,9 +1,13 @@
 import { Hook } from "phoenix_typed_hook";
 import { AlignedData } from 'uplot';
+import Emitter from "./emitter";
 import { Row } from './models';
 
+export type Seconds = number;
+export type KV = [Seconds, unknown];
+
 class Dimensions {
-  windows: Record<string, [number, T][]> = {};
+  windows: Record<string, KV[]> = {};
 
   constructor() { }
 
@@ -20,6 +24,10 @@ class Dimensions {
   }
 
   append(t: number, column: string, value: T) {
+    if (!this.windows[column]) {
+      console.warn("unknown value", column, "in", Object.keys(this.windows));
+      return;
+    }
     this.windows[column].push([t, value]);
   }
 
@@ -63,20 +71,39 @@ interface RangeLike {
   to: number
 }
 type SetRange = (range: RangeLike) => void;
+interface RowResp { column: string, rows: Row[] };
 
 
+interface ChartHover {
+  type: 'hover',
+  k: number;
+  values: {
+    column: string;
+    value: unknown;
+  }[],
+  idx: number
+};
+
+type WidgetEvent =
+  ChartHover
 
 export class Widget {
   columns: string[] = [];
   dimensions: Dimensions;
   hook: Hook;
   rows: Record<string, Row[]>;
+  emitter: Emitter<WidgetEvent>;
 
-  constructor(h: Hook) {
+  constructor(h: Hook, emitter: Emitter<WidgetEvent>) {
     this.hook = h;
+    this.emitter = emitter;
     this.dimensions = new Dimensions();
     this.init();
     this.getColumns().forEach(this.subscribeTo);
+  }
+
+  emit = (event: WidgetEvent) => {
+    this.emitter.emit(event.type, event);
   }
 
 
@@ -98,10 +125,10 @@ export class Widget {
 
   subscribeTo = (column: string) => {
     // this.
-    this.hook.handleEvent(`append_rows:${column}`, this.appendRows(column));
-    this.hook.handleEvent(`set_rows:${column}`, ({ column, rows }: { column: string, rows: Row[] }) => {
-
-      console.log("guhhhhh");
+    this.hook.handleEvent(`append_rows:${column}`, ({ rows }: RowResp) => {
+      this.appendRows(column, rows);
+    });
+    this.hook.handleEvent(`set_rows:${column}`, ({ column, rows }: RowResp) => {
       this.setRows(column, rows);
     });
   }
@@ -112,24 +139,24 @@ export class Widget {
   }
 
 
-  private putRows = (column: string, rows: Row[]) => {
-    rows.forEach(row => {
+  private putRows = (column: string, rows: Row[]): KV[] => {
+    return rows.map(row => {
       const t = parseInt(row.t) / 1000;
       this.dimensions.append(t, column, row.value);
+      return [t, row.value]
     });
   }
 
-  appendRows = (column: string) => (rows: Row[]) => {
-    this.putRows(column, rows);
-    this.onAppendRows();
+  appendRows = (column: string, rows: Row[]) => {
+    const kvs = this.putRows(column, rows);
+    this.onAppendRows(column, kvs);
     // this.uplot.setData(this.dimensions.dump())
   }
 
   setRows = (column: string, rows: Row[]) => {
-    console.log("WTF? set rows", column, rows);
     this.dimensions.clear(column);
-    this.putRows(column, rows);
-    this.onSetRows();
+    const kvs = this.putRows(column, rows);
+    this.onSetRows(column, kvs);
     // this.reinit();
   }
 
@@ -141,11 +168,11 @@ export class Widget {
     // pls override
   }
 
-  onAppendRows() {
+  onAppendRows(column: string, rows: KV[]) {
     // pls override
   }
 
-  onSetRows() {
+  onSetRows(column: string, rows: KV[]) {
     // pls override
   }
 }

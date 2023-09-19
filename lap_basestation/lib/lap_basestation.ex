@@ -3,18 +3,21 @@ defmodule LapBasestation do
     use GenServer
     require Logger
 
+    @singular "sample"
+    @multi "samples"
+
     @dimensions [
-      {"P_C", :coolant_pres, :psi_x10},
-      {"T_O", :oil_temp, :degrees_f},
-      {"T_C", :coolant_temp, :degrees_f},
-      {"VBA", :voltage, :volt},
-      {"P_O", :oil_pres, :psi},
-      {"RPM", :rpm, :rpm},
-      {"MET", :met, :time},
-      {"RSI", :rsi, :rsi},
-      {"FLT", :fault, :none},
-      {"GPS", :gps, :none},
-      {"SPD", :speed, :mph}
+      {"P_C", :coolant_pres, :psi_x10, @singular},
+      {"T_O", :oil_temp, :degrees_f, @singular},
+      {"T_C", :coolant_temp, :degrees_f, @singular},
+      {"VBA", :voltage, :volt, @singular},
+      {"P_O", :oil_pres, :psi, @singular},
+      {"RPM", :rpm, :rpm, @singular},
+      {"MET", :met, :time, @singular},
+      {"RSI", :rsi, :rsi, @singular},
+      {"FLT", :fault, :none, @singular},
+      {"GPS", :gps, :none, @multi},
+      {"SPD", :speed, :mph, @multi}
     ]
 
     def dimensions, do: @dimensions
@@ -64,21 +67,21 @@ defmodule LapBasestation do
 
     defp convert(_, value), do: {:ok, value}
 
-    defp loud(channel, label, value, unit) do
+    defp loud(channel, event_name, label, value, unit) do
       Logger.info("#{label} : #{value} #{unit}")
 
       with {:ok, value} <- convert(unit, value) do
         :ok =
-          PhoenixClient.Channel.push_async(channel, "sample", %{
+          PhoenixClient.Channel.push_async(channel, event_name, %{
             label: label,
             value: value
           })
       end
     end
 
-    Enum.each(@dimensions, fn {prefix, name, units} ->
+    Enum.each(@dimensions, fn {prefix, name, units, event_name} ->
       defp dispatch("#{unquote(prefix)}:" <> value, {_, channel} = state) do
-        loud(channel, unquote(name), value, unquote(units))
+        loud(channel, unquote(event_name), unquote(name), value, unquote(units))
         state
       end
     end)

@@ -1,5 +1,5 @@
 defmodule LapBasestation.Simulator do
-  @dimension_lookup Enum.map(LapBasestation.Handler.dimensions(), fn {prefix, name, unit} ->
+  @dimension_lookup Enum.map(LapBasestation.Handler.dimensions(), fn {prefix, name, unit, _evname} ->
     {name, prefix}
   end) |> Enum.into(%{})
 
@@ -45,18 +45,17 @@ defmodule LapBasestation.Simulator do
     end)
     |> Stream.chunk_by(fn %{time: t} -> trunc(t) end)
     |> Stream.flat_map(fn chunk ->
-
-
       gps_frame = Enum.map(chunk, fn %{time: t, lat: lat, lng: lng} ->
         offset_millis = trunc((t - trunc(t)) * 1000)
-        Enum.join([offset_millis, lat, lng], ",")
+        "#{offset_millis}:#{lat},#{lng}"
       end)
       |> Enum.join("|")
 
       speed_frame = Enum.map(chunk, fn %{time: t, speed: speed} ->
         offset_millis = trunc((t - trunc(t)) * 1000)
-        Enum.join([offset_millis, speed], ",")
+        Enum.join([offset_millis, speed], ":")
       end)
+      |> Enum.join("|")
 
       [{:gps, gps_frame}, {:speed, speed_frame}]
     end)
