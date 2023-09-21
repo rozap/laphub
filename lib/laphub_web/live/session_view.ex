@@ -15,7 +15,7 @@ defmodule LaphubWeb.SessionLive do
 
   alias Laphub.Laps.Track
   alias Laphub.{Time, Laps, Repo}
-  alias Laphub.Laps.{ActiveSesh, Sesh}
+  alias Laphub.Laps.{ActiveSesh, Sesh, Dashboard}
   alias Laphub.Laps.Timeseries
 
   def mount(%{"session_id" => id}, %{"user" => user}, socket) do
@@ -30,29 +30,12 @@ defmodule LaphubWeb.SessionLive do
       |> assign(:pid, pid)
       |> assign(:range, clamp_range(pid))
       |> assign(:columns, ActiveSesh.columns(pid))
-      |> assign(:charts, default_charts())
+      |> assign(:dashboard, Dashboard.default())
       |> assign(:tz, "America/Los_Angeles")
 
     {:ok, socket}
   end
 
-  defp default_charts() do
-    [
-      {"temperatures",
-       [
-         "coolant_temp"
-         # "oil_temp"
-       ]},
-      {"pressures",
-       [
-         "oil_pres"
-         # "coolant_pres"
-       ]},
-      {"volts", ["voltage"]},
-      {"rpm", ["rpm"]},
-      {"speed", ["speed"]}
-    ]
-  end
 
   defp clamp_range(pid) do
     {from_key, to_key} = ActiveSesh.range(pid)
@@ -133,30 +116,27 @@ defmodule LaphubWeb.SessionLive do
             id="fault-wrap"
           />
         </div>
-        <%= for {name, columns} <- @charts do %>
+        <%= for w <- @dashboard.widgets do %>
           <div>
-            <p><%= name %><%= inspect columns %></p>
-            <.live_component module={ChartComponent}
-            id={"#{name}-chart"}
-            columns={columns}
-            name={name}
-            pid={@pid}
-            range={@range} />
+            <p><%= w.title %><%= inspect w.columns %></p>
 
+            <%
+              w_mod = case w.component do
+                "chart" -> ChartComponent
+                "map" -> MapComponent
+                "laptimes" -> LaptimesComponent
+              end
+            %>
+
+            <.live_component module={w_mod}
+              id={"#{w.title}-#{w_mod}"}
+              columns={w.columns}
+              name={w.title}
+              pid={@pid}
+              range={@range} />
           </div>
         <% end %>
 
-        <.live_component
-          module={LaptimesComponent}
-          id="laptimes-table"
-          pid={@pid}
-        />
-        <.live_component
-          module={MapComponent}
-          pid={@pid}
-          columns={["gps", "speed"]}
-          range={@range}
-          id="map-wrap" />
 
       </div>
     </div>

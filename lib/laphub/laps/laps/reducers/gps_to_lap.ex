@@ -12,14 +12,15 @@ defmodule Laphub.Laps.Reducers.GpsToLap do
   end
 
   defp has_crossed?(coord, %{previous_coords: prev_coord, sesh: sesh}) do
-
-    # {y0, x0} = prev_coord
-    # {y1, x1} = coord
-
-    # [{ly0, lx0}, {ly1, lx1}] = sesh.track.start_finish_line
-
-    # x0 < lx0 && x1 > lx0 && x0 < lx1 &&
-    false
+    with {y0, x0} <- prev_coord,
+         {y1, x1} <- coord,
+         [%{"lat" => ly0, "lng" => lx0}, %{"lat" => ly1, "lng" => lx1}] <-
+           sesh.track.start_finish_line do
+      {intersect, _, _} = SegSeg.intersection({x0, y0}, {x1, y1}, {lx0, ly0}, {lx1, ly1})
+      intersect
+    else
+      _ -> false
+    end
   end
 
   defp emit_lap(key, current_coords, %State{previous_coords: nil, previous_time: nil} = state) do
@@ -32,7 +33,7 @@ defmodule Laphub.Laps.Reducers.GpsToLap do
 
       lapnum = state.lapnum
       new_state = %State{state | previous_time: time, lapnum: lapnum + 1}
-      {[{key, "lap", %{lapnum: lapnum, time: time}}], new_state}
+      {[{key, "lap", lapnum}], new_state}
     else
       {[], state}
     end
@@ -41,7 +42,6 @@ defmodule Laphub.Laps.Reducers.GpsToLap do
   def reduce(key, column, [lat, lng], state) do
     with {lat, ""} <- Float.parse(lat),
          {lng, ""} <- Float.parse(lng) do
-
       {lap_events, new_state} = emit_lap(key, {lat, lng}, state)
       new_state = %State{new_state | previous_coords: {lat, lng}}
       {[{key, column, %{lat: lat, lng: lng}}] ++ lap_events, new_state}

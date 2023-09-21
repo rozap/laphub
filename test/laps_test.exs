@@ -92,22 +92,48 @@ defmodule LapsTest do
     test "can explode special events" do
       sesh =
         create_sesh([
-          %{lat: 1.5, lng: -1},
-          %{lat: 1.5, lng: 1}
+          %{lat: -1, lng: 0},
+          %{lat: 1, lng: 0}
         ])
 
       {:ok, pid} = ActiveSesh.get_or_start(sesh)
 
+      lap = [
+        [0, -1],
+        # TODO: it will double count if it's right on the line...
+        [0, 0.1],
+        [0, 1],
+        [1, 1],
+        [2, 1],
+        [2, 2],
+        [2, 1],
+        [2, 0],
+        [2, -1],
+        [1, -1]
+      ]
+
       ActiveSesh.subscribe(sesh)
 
-      ActiveSesh.publish(pid, "gps", ["0", "0"])
-      ActiveSesh.publish(pid, "gps", ["1", "0"])
-      ActiveSesh.publish(pid, "gps", ["2", "0"])
-      ActiveSesh.publish(pid, "gps", ["3", "0"])
+      lap_count = 1
 
-      assert ["gps"] == ActiveSesh.columns(pid)
+      Enum.each(0..lap_count, fn l ->
+        Enum.each(Range.new(0, length(lap) - 1), fn i ->
+          [y, x] = Enum.at(lap, i)
+          ActiveSesh.publish(pid, "gps", [to_string(y), to_string(x)])
+        end)
+      end)
 
-      assert [] = dump_sesh_pubsub()
+      assert ["gps", "lap"] == ActiveSesh.columns(pid)
+
+      laps =
+        dump_sesh_pubsub()
+        |> Enum.filter(fn
+          {:append, _t, %{"lap" => _}} -> true
+          _ -> false
+        end)
+        |> Enum.map(fn {:append, _t, %{"lap" => lap}} -> lap end)
+
+      assert laps = [0, 1]
     end
   end
 end

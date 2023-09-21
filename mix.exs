@@ -57,7 +57,8 @@ defmodule Laphub.MixProject do
       {:rocksdb, "~> 1.0"},
       {:tzdata, "~> 1.1"},
       {:nimble_csv, "~> 1.2"},
-      {:phoenix_typed_hook, "~> 0.18.2"}
+      {:phoenix_typed_hook, "~> 0.18.2"},
+      {:seg_seg, "~> 1.0"}
     ]
   end
 

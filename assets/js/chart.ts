@@ -170,6 +170,7 @@ class Chart extends Widget {
   }
 
   resetChart() {
+    console.log(this.getName())
     const { series, opts } = buildChart(this.getName(), this);
     series.forEach(this.addColumn, this.dimensions);
     this.uplot && this.uplot.destroy();

@@ -167,8 +167,7 @@ defmodule Laphub.Laps.ActiveSesh do
         {series, new_sesh} = case lookup_series(state.sesh, column) do
           nil ->
             Logger.info("Creating new series: #{column}")
-            IO.inspect state.sesh
-            new_sesh = Repo.update!(Sesh.add_series(state.sesh, column) |> IO.inspect)
+            new_sesh = Repo.update!(Sesh.add_series(state.sesh, column))
             {lookup_series(new_sesh, column), new_sesh}
 
           series ->
