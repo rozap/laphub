@@ -10,6 +10,7 @@ defmodule Laphub.Laps.Dashboard do
       field :title, :string
       field :component, :string
       field :columns, {:array, :string}
+      field :style, :map
     end
   end
 
@@ -28,36 +29,54 @@ defmodule Laphub.Laps.Dashboard do
     %__MODULE__{
       name: "Default",
       widgets: [
-        # %DashWidget{
-        #   title: "temperatures",
-        #   component: "chart",
-        #   columns: ["coolant_temp", "oil_temp"]
-        # },
-        # %DashWidget{
-        #   title: "pressures",
-        #   component: "chart",
-        #   columns: ["oil_pres", "coolant_pres"]
-        # },
-        # %DashWidget{
-        #   title: "volts",
-        #   component: "chart",
-        #   columns: ["voltage"]
-        # },
-        # %DashWidget{
-        #   title: "rpm",
-        #   component: "chart",
-        #   columns: ["rpm"]
-        # },
-        # %DashWidget{
-        #   title: "speed",
-        #   component: "chart",
-        #   columns: ["speed"]
-        # },
-        # %DashWidget{
-        #   title: "position",
-        #   component: "map",
-        #   columns: ["speed", "gps"]
-        # },
+        %DashWidget{
+          title: "drivers",
+          component: "drivers",
+          columns: ["drivers"],
+          style: %{
+            width: "50%"
+          }
+        },
+        %DashWidget{
+          title: "faults",
+          component: "fault",
+          columns: [],
+          style: %{
+            width: "50%"
+          }
+        },
+
+
+        %DashWidget{
+          title: "temperatures",
+          component: "chart",
+          columns: ["coolant_temp"]
+        },
+        %DashWidget{
+          title: "pressures",
+          component: "chart",
+          columns: ["oil_pres"]
+        },
+        %DashWidget{
+          title: "volts",
+          component: "chart",
+          columns: ["voltage"]
+        },
+        %DashWidget{
+          title: "rpm",
+          component: "chart",
+          columns: ["rpm"]
+        },
+        %DashWidget{
+          title: "speed",
+          component: "chart",
+          columns: ["speed"]
+        },
+        %DashWidget{
+          title: "position",
+          component: "map",
+          columns: ["speed", "gps"]
+        },
         %DashWidget{
           title: "laps",
           component: "laptimes",

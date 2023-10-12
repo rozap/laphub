@@ -32,7 +32,7 @@ defmodule LaphubWeb.TelemetryChannel do
     |> Enum.flat_map(fn row ->
       case String.split(row, ":") do
         [offset, value] ->
-          [{String.to_integer(offset), String.split(value, ",")}]
+          [{String.to_integer(offset), String.split(value, ",") |> Enum.map(&String.trim/1)}]
         _ ->
           Logger.warn("Malformed frame entry #{row}, skipping")
           []

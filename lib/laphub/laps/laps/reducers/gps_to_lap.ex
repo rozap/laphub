@@ -2,13 +2,25 @@ defmodule Laphub.Laps.Reducers.GpsToLap do
   require Logger
   alias Laphub.Time
   alias Laphub.Laps.Sesh
+  alias Laphub.Laps.Timeseries
 
   defmodule State do
     defstruct [:sesh, :previous_coords, :lapnum, :previous_time]
   end
 
-  def init(%Sesh{} = sesh) do
-    %State{sesh: sesh, previous_coords: nil, previous_time: nil, lapnum: 0}
+  def init(%Sesh{} = sesh, timeseries) do
+    lapnum = case Map.get(timeseries, "lap") do
+      nil -> 0
+      db ->
+        Timeseries.all_reversed(db)
+        |> Enum.take(1)
+        |> case do
+          [{_, lapno}] -> lapno
+          _ -> 0
+        end
+    end
+
+    %State{sesh: sesh, previous_coords: nil, previous_time: nil, lapnum: lapnum}
   end
 
   defp has_crossed?(coord, %{previous_coords: prev_coord, sesh: sesh}) do
@@ -46,8 +58,8 @@ defmodule Laphub.Laps.Reducers.GpsToLap do
       new_state = %State{new_state | previous_coords: {lat, lng}}
       {[{key, column, %{lat: lat, lng: lng}}] ++ lap_events, new_state}
     else
-      _ ->
-        Logger.warn("Dropping Gps sample, cannot parse")
+      e ->
+        Logger.warn("Dropping Gps sample, cannot parse: #{inspect e} #{inspect {lat, lng}}")
         {[], state}
     end
   end

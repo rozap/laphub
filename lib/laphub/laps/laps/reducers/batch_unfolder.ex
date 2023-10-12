@@ -3,7 +3,7 @@ defmodule Laphub.Laps.Reducers.BatchUnfolder do
   alias Laphub.Laps.Sesh
 
 
-  def init(%Sesh{} = sesh) do
+  def init(%Sesh{} = sesh, _db) do
     :nostate
   end
 

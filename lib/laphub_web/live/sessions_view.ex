@@ -4,6 +4,21 @@ defmodule LaphubWeb.SessionsLive do
   alias LaphubWeb.SessionView
   alias Laphub.Laps.Sesh
   alias Laphub.Repo
+  alias LaphubWeb.Router.Helpers, as: Router
+
+  def mount(_params, %{"user" => user}, socket) do
+    socket =
+      socket
+      |> assign(:tracks, Laphub.Laps.tracks())
+      |> assign(:selection, nil)
+      |> assign(:user, user)
+      |> assign(:previous, Laphub.Laps.my_sessions(user.id))
+
+    {:ok, socket}
+  end
+  def mount(_params, _no_user, socket) do
+    {:ok, push_redirect(socket, to: Router.login_path(LaphubWeb.Endpoint, :login_form))}
+  end
 
   def render(assigns) do
     ~H"""
@@ -47,16 +62,6 @@ defmodule LaphubWeb.SessionsLive do
     """
   end
 
-  def mount(_params, %{"user" => user}, socket) do
-    socket =
-      socket
-      |> assign(:tracks, Laphub.Laps.tracks())
-      |> assign(:selection, nil)
-      |> assign(:user, user)
-      |> assign(:previous, Laphub.Laps.my_sessions(user.id))
-
-    {:ok, socket}
-  end
 
   def handle_event("select", %{"track" => id}, socket) do
     {id, ""} = Integer.parse(id)

@@ -18,4 +18,5 @@ defmodule Laphub.Laps.Track do
     |> validate_required([:title, :coords, :start_finish_line])
   end
 
+
 end

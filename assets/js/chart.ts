@@ -170,7 +170,6 @@ class Chart extends Widget {
   }
 
   resetChart() {
-    console.log(this.getName())
     const { series, opts } = buildChart(this.getName(), this);
     series.forEach(this.addColumn, this.dimensions);
     this.uplot && this.uplot.destroy();
@@ -178,7 +177,8 @@ class Chart extends Widget {
   }
 
   onSetRows(): void {
-    this.resetChart();
+    this.uplot.setData(this.dimensions.dump());
+    // this.resetChart();
   }
 
   onAppendRows(): void {

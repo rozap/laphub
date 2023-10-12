@@ -94,7 +94,7 @@ defmodule Laphub.Laps.ActiveSesh do
   # end
 
   defmodule IdentityReducer do
-    def init(_sesh), do: :nostate
+    def init(_sesh, _db), do: :nostate
     def reduce(key, column, value, :nostate), do: {[{key, column, value}], :nostate}
   end
 
@@ -142,7 +142,7 @@ defmodule Laphub.Laps.ActiveSesh do
     case Map.get(state.column_states, column) do
       nil ->
         reducer = Map.get(reducers(), column, IdentityReducer)
-        rs = reducer.init(state.sesh)
+        rs = reducer.init(state.sesh, state.timeseries)
 
         cs = %ColumnState{
           reducer: reducer,

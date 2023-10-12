@@ -6,7 +6,9 @@ defmodule LaphubWeb.Components.Widget do
       alias Laphub.Laps.Timeseries
       alias Laphub.Time
 
+
       def update(assigns, socket) do
+
         {:ok, assign(fetch(assigns, socket), assigns)}
       end
 
@@ -14,10 +16,10 @@ defmodule LaphubWeb.Components.Widget do
       def fetch(assigns, socket) do
         {from_key, to_key} = assigns.range
 
-        IO.inspect(
-          {:sending_rows, Time.key_to_datetime(from_key) |> NaiveDateTime.to_iso8601(), :to,
-           Time.key_to_datetime(to_key) |> NaiveDateTime.to_iso8601()}
-        )
+        # IO.inspect(
+        #   {:sending_rows, Time.key_to_datetime(from_key) |> NaiveDateTime.to_iso8601(), :to,
+        #    Time.key_to_datetime(to_key) |> NaiveDateTime.to_iso8601()}
+        # )
 
         parent = self()
 
@@ -38,7 +40,6 @@ defmodule LaphubWeb.Components.Widget do
                 %{t: key, value: value}
               end)
 
-            IO.inspect({:push_event, "set_rows:#{column}", length(rows)})
             send(parent, {:push_event, "set_rows:#{column}", %{column: column, rows: rows}})
           end)
         end)

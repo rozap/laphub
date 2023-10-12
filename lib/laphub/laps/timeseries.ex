@@ -132,6 +132,10 @@ defmodule Laphub.Laps.Timeseries do
     walk(db_path, :first, :next)
   end
 
+  def all_reversed(db_path) do
+    walk(db_path, :last, :prev)
+  end
+
   def range(db_path) do
     first_key = fn s ->
       s

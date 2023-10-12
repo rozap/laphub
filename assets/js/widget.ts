@@ -2,64 +2,142 @@ import { Hook } from "phoenix_typed_hook";
 import { AlignedData } from 'uplot';
 import Emitter from "./emitter";
 import { Row } from './models';
+import _ from 'underscore';
 
 export type Seconds = number;
 export type KV = [Seconds, unknown];
 
+
+const rowKey = (row: Row) => {
+  return parseInt(row.t) / 1000;
+}
 class Dimensions {
-  windows: Record<string, KV[]> = {};
+  time: number[] = []
+  columns: Record<string, unknown[]> = {};
 
   constructor() { }
 
   addColumn(column: string) {
-    this.windows[column] = this.windows[column] || [];
+    this.columns[column] = this.columns[column] || [];
   }
 
   removeColumn(column: string) {
-    delete this.windows[column];
+    delete this.columns[column];
   }
 
   getColumns() {
-    return Object.keys(this.windows);
+    return Object.keys(this.columns);
   }
 
-  append(t: number, column: string, value: T) {
-    if (!this.windows[column]) {
-      console.warn("unknown value", column, "in", Object.keys(this.windows));
+
+
+  setRows(column: string, rows: Row[]): KV[] {
+    console.log("setRows", column);
+    const result: KV[] = rows.map(r => {
+      return [rowKey(r), r.value];
+    });
+
+    const newDimensionLookup = {};
+    result.forEach(([t, value]) => {
+      newDimensionLookup[t] = value
+    });
+
+
+    const lookups = Object.keys(this.columns).filter(c => c !== column).map((column) => {
+      const zipped = _.zip(this.time, this.columns[column]);
+      const lookup = {}
+      zipped.forEach(([t, v]) => {
+        lookup[t] = v;
+      });
+      return { column, lookup };
+    }).reduce((acc, { column, lookup }) => {
+      acc[column] = lookup;
+      return acc;
+    }, {
+      [column]: newDimensionLookup
+    });
+
+    // add the new timestamps using an merge sort
+    // style thing
+    const toAdd = rows.map(rowKey);
+    let newTime = [];
+
+    if (this.time.length == 0) {
+      // nothing to merge
+      newTime = toAdd;
+    } else {
+      let nt = 0;
+      let ot = 0;
+      while (ot < this.time.length && nt < toAdd.length) {
+        if (this.time[ot] < toAdd[nt]) {
+          newTime.push(this.time[ot]);
+          ot++;
+        } else if (this.time[ot] > toAdd[nt]) {
+          newTime.push(toAdd[nt]);
+          nt++
+        } else if (this.time[ot] == toAdd[nt]) {
+          newTime.push(this.time[ot]);
+          ot++;
+          nt++;
+        }
+      }
+
+    }
+
+    const newWindows = {};
+    Object.keys(lookups).forEach((column) => {
+      const lookup = lookups[column];
+      const series = newTime.map(t => lookup[t]);
+      newWindows[column] = series;
+    });
+
+    this.columns = newWindows;
+    this.time = newTime;
+
+    return result;
+  }
+
+  appendRows(column: string, rows: Row[]): KV[] {
+    return rows.map(r => {
+      const t = rowKey(r);
+      this._append(t, column, r.value);
+      return [t, r.value]
+    });
+  }
+
+
+  _append(t: number, column: string, value: unknown) {
+    if (!this.columns[column]) {
+      console.warn("unknown value", column, "in", Object.keys(this.columns));
       return;
     }
-    this.windows[column].push([t, value]);
+    const frontier = _.last(this.time);
+
+    if (frontier && t < frontier) {
+      // console.warn("Appended value < frontier, skipping", frontier, t)
+      return;
+    }
+
+    if (t !== frontier) {
+      this.time.push(t);
+
+      Object.keys(this.columns).map((key: string) => {
+        this.columns[key][this.time.length - 1] = undefined
+      });
+    }
+
+    this.columns[column][this.time.length - 1] = value;
   }
 
   clear(column: string) {
-    this.windows[column] = [];
+    this.columns[column] = [];
   }
 
   dump(): AlignedData {
-    // return [
-    //   this.time,
-    //   ...
-    // ] as any as AlignedData;
-
-
-    // this is really slow and can be optimized
-    const lookup = Object.keys(this.windows).reduce((acc, column) => {
-      const innerLookup = {};
-      this.windows[column].forEach(([ts, value]) => {
-        innerLookup[ts] = value;
-      });
-      return { ...acc, [column]: innerLookup }
-    }, {});
-
-    const time = Object.keys(this.windows).flatMap((column) => {
-      return this.windows[column].map(([ts, _value]) => ts)
-    });
-    time.sort();
-
     return [
-      time,
-      ...Object.keys(this.windows).map((column) => {
-        return time.map(ts => lookup[column][ts])
+      this.time,
+      ...Object.keys(this.columns).map((column) => {
+        return this.columns[column]
       })
     ] as any as AlignedData
   }
@@ -139,23 +217,17 @@ export class Widget {
   }
 
 
-  private putRows = (column: string, rows: Row[]): KV[] => {
-    return rows.map(row => {
-      const t = parseInt(row.t) / 1000;
-      this.dimensions.append(t, column, row.value);
-      return [t, row.value]
-    });
-  }
 
   appendRows = (column: string, rows: Row[]) => {
-    const kvs = this.putRows(column, rows);
+    const kvs = this.dimensions.appendRows(column, rows);
     this.onAppendRows(column, kvs);
     // this.uplot.setData(this.dimensions.dump())
   }
 
   setRows = (column: string, rows: Row[]) => {
     this.dimensions.clear(column);
-    const kvs = this.putRows(column, rows);
+    const kvs = this.dimensions.setRows(column, rows);
+    // const kvs = this.putRows(column, rows);
     this.onSetRows(column, kvs);
     // this.reinit();
   }

@@ -10,7 +10,8 @@ defmodule LaphubWeb.SessionLive do
     MapComponent,
     LaptimesComponent,
     FaultComponent,
-    TrackAddictComponent
+    TrackAddictComponent,
+    DriversComponent
   }
 
   alias Laphub.Laps.Track
@@ -41,7 +42,7 @@ defmodule LaphubWeb.SessionLive do
     {from_key, to_key} = ActiveSesh.range(pid)
     clamped_from = Time.subtract(to_key, 60 * 60)
     from = max(clamped_from, from_key)
-    IO.inspect({:from, Time.key_to_datetime(from) |> NaiveDateTime.to_iso8601(), :to, Time.key_to_datetime(to_key) |> NaiveDateTime.to_iso8601()})
+    # IO.inspect({:from, Time.key_to_datetime(from) |> NaiveDateTime.to_iso8601(), :to, Time.key_to_datetime(to_key) |> NaiveDateTime.to_iso8601()})
 
     {from, to_key}
   end
@@ -110,26 +111,22 @@ defmodule LaphubWeb.SessionLive do
             tz={"America/Los_Angeles"}/>
         </div>
 
-        <div class="widgets">
-          <.live_component
-            module={FaultComponent}
-            id="fault-wrap"
-          />
-        </div>
         <%= for w <- @dashboard.widgets do %>
           <div>
-            <p><%= w.title %><%= inspect w.columns %></p>
-
             <%
               w_mod = case w.component do
+                "fault" -> FaultComponent
                 "chart" -> ChartComponent
                 "map" -> MapComponent
                 "laptimes" -> LaptimesComponent
+                "drivers" -> DriversComponent
               end
             %>
 
-            <.live_component module={w_mod}
+            <.live_component
+              module={w_mod}
               id={"#{w.title}-#{w_mod}"}
+              widget={w}
               columns={w.columns}
               name={w.title}
               pid={@pid}

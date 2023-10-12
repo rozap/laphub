@@ -68,4 +68,8 @@ defmodule Laphub.Time do
 
     {from_s, to_s} |> IO.inspect()
   end
+
+  def format(milliseconds) do
+
+  end
 end
