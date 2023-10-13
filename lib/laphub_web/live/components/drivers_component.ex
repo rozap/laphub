@@ -1,23 +1,17 @@
 defmodule LaphubWeb.Components.DriversComponent do
-  use Phoenix.LiveComponent
+  use LaphubWeb.Components.Widget
   alias Laphub.Laps.{Timeseries, ActiveSesh}
   import LaphubWeb.Components.Util
-  alias LaphubWeb.Icons
   alias Laphub.Time
-  alias Laphub.Time.DurationFormatter
 
-  def mount(socket) do
+  def init(socket) do
     socket =
       socket
       |> assign(:drivers, ["Gia", "Peaches", "Chris", "Steve", "Quiggles"])
       |> assign(:current_driver, nil)
+      |> set_current()
 
     {:ok, socket}
-  end
-
-  def update(assigns, socket) do
-    new_socket = assign(socket, assigns)
-    {:ok, set_current(new_socket)}
   end
 
   def set_current(socket) do
@@ -35,8 +29,6 @@ defmodule LaphubWeb.Components.DriversComponent do
     assign(socket, :current_driver, current)
   end
 
-
-
   def handle_event("switch", %{"driver" => driver}, socket) do
     ActiveSesh.publish(socket.assigns.pid, "drivers", driver)
     {:noreply, assign(socket, :current_driver, driver)}
@@ -49,7 +41,6 @@ defmodule LaphubWeb.Components.DriversComponent do
         <%= for driver <- @drivers do %>
           <button role="button"
             class={classnames([{"outline", driver != @current_driver}])}
-            phx-target={@myself}
             phx-click="switch"
             phx-value-driver={driver}>
             <%= driver %>

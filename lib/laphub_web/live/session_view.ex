@@ -29,7 +29,6 @@ defmodule LaphubWeb.SessionLive do
       socket
       |> assign(:sesh, sesh)
       |> assign(:pid, pid)
-      |> assign(:range, clamp_range(pid))
       |> assign(:columns, ActiveSesh.columns(pid))
       |> assign(:dashboard, Dashboard.default())
       |> assign(:tz, "America/Los_Angeles")
@@ -37,58 +36,13 @@ defmodule LaphubWeb.SessionLive do
     {:ok, socket}
   end
 
+  # def handle_info({DateRangeComponent, new_range}, socket) do
+  #   socket =
+  #     socket
+  #     |> assign(:range, print_range(new_range))
 
-  defp clamp_range(pid) do
-    {from_key, to_key} = ActiveSesh.range(pid)
-    clamped_from = Time.subtract(to_key, 60 * 60)
-    from = max(clamped_from, from_key)
-    # IO.inspect({:from, Time.key_to_datetime(from) |> NaiveDateTime.to_iso8601(), :to, Time.key_to_datetime(to_key) |> NaiveDateTime.to_iso8601()})
-
-    {from, to_key}
-  end
-
-  defp print_range({from, to} = range) do
-    f = Time.key_to_datetime(from) |> NaiveDateTime.to_iso8601()
-    t = Time.key_to_datetime(to) |> NaiveDateTime.to_iso8601()
-    Logger.info("Range is set to #{f} to #{t}")
-
-    range
-  end
-
-  def handle_event("set_range", range_like, socket) do
-    socket =
-      socket
-      |> assign(:range, print_range(Time.to_range(range_like, socket.assigns.tz)))
-
-    {:noreply, socket}
-  end
-
-  def handle_info({DateRangeComponent, new_range}, socket) do
-    socket =
-      socket
-      |> assign(:range, print_range(new_range))
-
-    {:noreply, socket}
-  end
-
-  def handle_info({:push_event, kind, payload}, socket) do
-    {:noreply, push_event(socket, kind, payload)}
-  end
-
-  def handle_info({ActiveSesh, {:change, columns, range}}, socket) do
-    {:noreply, socket}
-  end
-
-  def handle_info({ActiveSesh, {:append, key, dimensions}}, socket) do
-    Logger.info("append #{key} #{inspect(dimensions)}")
-
-    socket =
-      Enum.reduce(dimensions, socket, fn {column, value}, socket ->
-        push_event(socket, "append_rows:#{column}", %{rows: [%{t: key, value: value}]})
-      end)
-
-    {:noreply, socket}
-  end
+  #   {:noreply, socket}
+  # end
 
   def render(assigns) do
     ~H"""
@@ -103,13 +57,14 @@ defmodule LaphubWeb.SessionLive do
       </div>
 
       <div class="lap-viewer">
-        <div class="toolbar">
-          <.live_component
-            module={DateRangeComponent}
-            id="session-time-range"
-            range={@range}
-            tz={"America/Los_Angeles"}/>
-        </div>
+      <div class="toolbar">
+        <%= live_render(@socket, DateRangeComponent,
+          id: "date-range-view",
+          session: %{
+            "sesh" => @sesh
+          }
+        ) %>
+      </div>
 
         <%= for w <- @dashboard.widgets do %>
           <div>
@@ -121,16 +76,13 @@ defmodule LaphubWeb.SessionLive do
                 "laptimes" -> LaptimesComponent
                 "drivers" -> DriversComponent
               end
+              id = "#{w.title}-#{w_mod}"
             %>
 
-            <.live_component
-              module={w_mod}
-              id={"#{w.title}-#{w_mod}"}
-              widget={w}
-              columns={w.columns}
-              name={w.title}
-              pid={@pid}
-              range={@range} />
+            <%= live_render @socket, w_mod, id: id, session: %{
+              "sesh" => @sesh,
+              "widget" => w
+            } %>
           </div>
         <% end %>
 

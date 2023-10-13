@@ -29,6 +29,13 @@ class Dimensions {
     return Object.keys(this.columns);
   }
 
+  clearAll() {
+    this.time = [];
+    const columns = this.getColumns();
+    this.columns = {};
+    columns.forEach((c) => this.addColumn(c));
+  }
+
 
 
   setRows(column: string, rows: Row[]): KV[] {
@@ -129,9 +136,6 @@ class Dimensions {
     this.columns[column][this.time.length - 1] = value;
   }
 
-  clear(column: string) {
-    this.columns[column] = [];
-  }
 
   dump(): AlignedData {
     return [
@@ -143,7 +147,7 @@ class Dimensions {
   }
 }
 
-interface RangeLike {
+export interface RangeLike {
   type: 'unix_millis_range',
   from: number,
   to: number
@@ -152,7 +156,7 @@ type SetRange = (range: RangeLike) => void;
 interface RowResp { column: string, rows: Row[] };
 
 
-interface ChartHover {
+export interface WidgetHoverEvent {
   type: 'hover',
   k: number;
   values: {
@@ -162,8 +166,24 @@ interface ChartHover {
   idx: number
 };
 
+export interface WidgetRangeEvent {
+  type: 'range',
+  range: RangeLike
+}
+export type WidgetState =
+  'realtime' |
+  'paused';
+
+export interface WidgetStateEvent {
+  type: 'state',
+  state: WidgetState
+}
+
 type WidgetEvent =
-  ChartHover
+  WidgetHoverEvent |
+  WidgetRangeEvent |
+  WidgetStateEvent
+
 
 export class Widget {
   columns: string[] = [];
@@ -171,13 +191,23 @@ export class Widget {
   hook: Hook;
   rows: Record<string, Row[]>;
   emitter: Emitter<WidgetEvent>;
+  state: WidgetState;
 
   constructor(h: Hook, emitter: Emitter<WidgetEvent>) {
     this.hook = h;
     this.emitter = emitter;
     this.dimensions = new Dimensions();
+    this.state = 'realtime';
     this.init();
     this.getColumns().forEach(this.subscribeTo);
+
+    emitter.on('range', (re: WidgetRangeEvent) => {
+      this.setRange(re.range);
+    });
+    emitter.on('state', (ws: WidgetStateEvent) => {
+      this.state = ws.state;
+      console.log("state is now", ws.state)
+    });
   }
 
   emit = (event: WidgetEvent) => {
@@ -220,12 +250,14 @@ export class Widget {
 
   appendRows = (column: string, rows: Row[]) => {
     const kvs = this.dimensions.appendRows(column, rows);
-    this.onAppendRows(column, kvs);
+    if (this.state === 'realtime') {
+      this.onAppendRows(column, kvs);
+    }
     // this.uplot.setData(this.dimensions.dump())
   }
 
   setRows = (column: string, rows: Row[]) => {
-    this.dimensions.clear(column);
+    this.dimensions.clearAll();
     const kvs = this.dimensions.setRows(column, rows);
     // const kvs = this.putRows(column, rows);
     this.onSetRows(column, kvs);
@@ -234,6 +266,11 @@ export class Widget {
 
   setRange = (range: RangeLike) => {
     this.hook.pushEvent('set_range', range);
+    this.emit({
+      type: 'state',
+      state: 'paused'
+    });
+    this.state = 'paused';
   }
 
   init() {

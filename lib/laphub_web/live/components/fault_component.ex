@@ -1,10 +1,10 @@
 defmodule LaphubWeb.Components.FaultComponent do
-  use Phoenix.LiveComponent
+  use Phoenix.LiveView
   import LaphubWeb.Components.Util
   alias Laphub.Laps.{ActiveSesh}
   alias Laphub.Laps.Timeseries
 
-  def mount(socket) do
+  def mount(_, _, socket) do
     {:ok, assign(socket, :state, :uninit)}
   end
 
@@ -21,7 +21,7 @@ defmodule LaphubWeb.Components.FaultComponent do
     ~H"""
       <span>
       Fault status: OK
-        <a phx-click="test-sound" phx-target={@myself}>
+        <a phx-click="test-sound">
           Test Sound
         </a>
       </span>
@@ -38,7 +38,7 @@ defmodule LaphubWeb.Components.FaultComponent do
     })
 
     ~H"""
-    <div phx-hook="Fault" phx-target={@myself} phx-click="init" class={class} id="fault">
+    <div phx-hook="Fault" phx-click="init" class={class} id="fault">
       <%= case @state do
         :init -> render_ok(assigns)
         :uninit -> "Sound is disabled. Click here to enable"

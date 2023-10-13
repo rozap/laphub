@@ -15,6 +15,7 @@ defmodule Laphub.Time do
   end
 
   def key_to_millis(key), do: String.to_integer(key)
+  def key_to_second(key), do: trunc(String.to_integer(key) / 1000)
 
   def key_to_datetime(key) do
     {:ok, dt} = DateTime.from_unix(String.to_integer(key), :millisecond)
@@ -66,7 +67,7 @@ defmodule Laphub.Time do
       |> DateTime.to_unix(:millisecond)
       |> to_string
 
-    {from_s, to_s} |> IO.inspect()
+    {from_s, to_s}
   end
 
   def format(milliseconds) do

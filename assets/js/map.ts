@@ -54,10 +54,14 @@ interface Position {
 class Map extends Widget {
   _map: Leaflet.Map;
   marker: Leaflet.Marker | undefined;
+  line: Leaflet.Polyline | undefined;
   sortedSpeeds: SortedSet;
   sortedCoords: SortedSet;
 
   init() {
+    if (this._map) {
+      this._map.remove();
+    }
     this.hook.handleEvent('map:init', ({ track }: { track: Track }) => {
       this._map = Leaflet.map('map').setView([track.coords[0].lat, track.coords[0].lon], 14);
       Leaflet.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -121,23 +125,26 @@ class Map extends Widget {
 
   onSetRows(column: string, rows: KV[]): void {
     if (column === 'speed') {
-
       this.sortedSpeeds = new SortedSet(rows);
     }
 
     if (column === 'gps') {
       this.sortedCoords = new SortedSet(rows);
 
-      const line = Leaflet.polyline(rows.map((row) => {
+      if (this.line) {
+        // this.line.remove();
+        this.line.removeFrom(this.map());
+      }
+
+      this.line = Leaflet.polyline(rows.map((row) => {
         const { lat, lng } = row[1] as { lat: number, lng: number };
         return [lat, lng]
       }));
-      line.setStyle({
-        color: '#ff0000'
+      this.line.setStyle({
+        color: '#b103fc'
       });
 
-
-      line.addTo(this.map());
+      this.line.addTo(this.map());
 
 
     }

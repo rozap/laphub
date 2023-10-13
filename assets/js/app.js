@@ -5,12 +5,12 @@ import topbar from "../vendor/topbar"
 
 import Chart from './chart'
 import Map from './map';
+import DateRange from './date-range';
+
 import Fault from './fault';
 import Emitter from './emitter';
 
 // c = new Chart();
-console.log("WTF???", Chart)
-
 let csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content")
 
 
@@ -24,6 +24,11 @@ const hooks = {
   Map: {
     mounted() {
       new Map(this, emitter);
+    }
+  },
+  DateRange: {
+    mounted() {
+      new DateRange(this, emitter);
     }
   },
   Fault

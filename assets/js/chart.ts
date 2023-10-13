@@ -54,7 +54,12 @@ function buildChart<T>(name: string, w: Widget): ChartDefinition {
         setSelect: (u: uPlot) => {
           const from = Math.round(u.posToVal(u.select.left, 'x'));
           const to = Math.round(u.posToVal(u.select.left + u.select.width, 'x'));
-          w.setRange({ type: 'unix_millis_range', from, to });
+          // w.setRange();
+
+          w.emit({
+            type: 'range',
+            range: { type: 'unix_millis_range', from, to }
+          })
         },
         setCursor: (u: uPlot) => {
           if (!u.cursor.idx) return;
