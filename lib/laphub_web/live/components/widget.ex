@@ -62,7 +62,12 @@ defmodule LaphubWeb.Components.Widget do
 
         socket =
           Enum.reduce(dimensions, socket, fn {column, value}, socket ->
-            push_event(socket, "append_rows:#{column}", %{rows: [%{t: key, value: value}]})
+            if column in socket.assigns.widget.columns do
+
+              push_event(socket, "append_rows:#{column}", %{rows: [%{t: key, value: value}]})
+            else
+              socket
+            end
           end)
 
         {:noreply, socket}

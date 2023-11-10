@@ -47,15 +47,6 @@ defmodule LaphubWeb.SessionLive do
   def render(assigns) do
     ~H"""
     <div class="session">
-      <div class="column-selector">
-        <.live_component
-          module={ColumnSelector}
-          id="column-selector"
-          columns={@columns}
-          selected_columns={MapSet.new(@columns)}
-        />
-      </div>
-
       <div class="lap-viewer">
       <div class="toolbar">
         <%= live_render(@socket, DateRangeComponent,
