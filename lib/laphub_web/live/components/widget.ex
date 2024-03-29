@@ -5,7 +5,7 @@ defmodule LaphubWeb.Components.Widget do
       alias Laphub.Laps.{ActiveSesh}
       alias Laphub.Laps.Timeseries
       alias Laphub.Time
-      alias Laphub.Laps.{Sesh, Dashboard}
+      alias Laphub.Laps.{Sesh}
       require Logger
       import LaphubWeb.Components.WidgetUtil
 
@@ -19,7 +19,6 @@ defmodule LaphubWeb.Components.Widget do
           |> assign(:pid, pid)
           |> assign(:widget, widget)
           |> assign(:range, clamp_range(pid))
-          |> assign(:dashboard, Dashboard.default())
           |> assign(:tz, "America/Los_Angeles")
           |> fetch()
 
@@ -35,7 +34,7 @@ defmodule LaphubWeb.Components.Widget do
       defp print_range({from, to} = range, socket) do
         f = Time.key_to_datetime(from) |> NaiveDateTime.to_iso8601()
         t = Time.key_to_datetime(to) |> NaiveDateTime.to_iso8601()
-        Logger.info("Range is set to #{f} to #{t} for ")
+        Logger.info("Range is set to #{f} to #{t}")
 
         range
       end
@@ -118,4 +117,20 @@ defmodule LaphubWeb.Components.Widget do
       defoverridable init: 1
     end
   end
+
+  @max_width 8
+  defp into_css("width", units) when is_number(units) and units > 0 do
+    pct = floor((units / @max_width) * 100)
+    ["width:#{pct}%"]
+  end
+  defp into_css(_, _), do: []
+
+  def make_style(%{style: style = %{}}) do
+    rules = Enum.flat_map(style, fn {k, v} ->
+      into_css(k, v)
+    end)
+    Enum.join(rules, "; ")
+  end
+  def make_style(_), do: ""
+
 end

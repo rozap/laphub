@@ -23,7 +23,16 @@ defmodule LaphubWeb.Components.DateRangeComponent do
     push_event(socket, "set_widget_state", %{"state" => socket.assigns.state})
   end
 
-  def handle_event("set_range", _, socket) do
+  def handle_event("set_range", range, socket) do
+    IO.inspect({:set_Range, range})
+
+    %{
+      "from" => from,
+      "to" => to,
+      "type" => "unix_second_range"
+    } = range
+
+    socket = assign(socket, :range, {Time.second_to_key(from), Time.second_to_key(to)})
     {:noreply, socket}
   end
 
@@ -83,7 +92,7 @@ defmodule LaphubWeb.Components.DateRangeComponent do
     socket =
       push_event(socket, "set_range", %{
         "range" => %{
-          "type" => "unix_millis_range",
+          "type" => "unix_second_range",
           "from" => Time.key_to_second(from_k),
           "to" => Time.key_to_second(to_k)
         }

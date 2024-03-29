@@ -58,7 +58,7 @@ function buildChart<T>(name: string, w: Widget): ChartDefinition {
 
           w.emit({
             type: 'range',
-            range: { type: 'unix_millis_range', from, to }
+            range: { type: 'unix_second_range', from, to }
           })
         },
         setCursor: (u: uPlot) => {

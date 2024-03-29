@@ -2,7 +2,7 @@ defmodule LaphubWeb.SessionsLive do
   use LaphubWeb, :live_view
   import LaphubWeb.Components.CommonComponents
   alias LaphubWeb.SessionView
-  alias Laphub.Laps.Sesh
+  alias Laphub.Laps.{Sesh}
   alias Laphub.Repo
   alias LaphubWeb.Router.Helpers, as: Router
 
@@ -16,6 +16,7 @@ defmodule LaphubWeb.SessionsLive do
 
     {:ok, socket}
   end
+
   def mount(_params, _no_user, socket) do
     {:ok, push_redirect(socket, to: Router.login_path(LaphubWeb.Endpoint, :login_form))}
   end
@@ -61,7 +62,6 @@ defmodule LaphubWeb.SessionsLive do
       </div>
     """
   end
-
 
   def handle_event("select", %{"track" => id}, socket) do
     {id, ""} = Integer.parse(id)

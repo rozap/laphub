@@ -58,24 +58,3 @@
     background-color: $color-red;
   }
 }
-
-.track-addict {
-  border: 1px solid $gray;
-  padding: $base-padding;
-  &.not-init {
-    border-color: $color-orange;
-  }
-  &.ok {
-    border-color: $color-primary;
-  }
-}
-
-.widgets {
-  display: flex;
-  gap: $base-padding;
-  align-items: baseline;
-  div {
-    width: 50%;
-    height: 100%;
-  }
-}

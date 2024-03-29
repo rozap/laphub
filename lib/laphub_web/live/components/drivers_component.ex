@@ -7,7 +7,7 @@ defmodule LaphubWeb.Components.DriversComponent do
   def init(socket) do
     socket =
       socket
-      |> assign(:drivers, ["Gia", "Peaches", "Chris", "Steve", "Quiggles"])
+      |> assign(:drivers, ["Gia", "Peaches", "Chris", "Steve"])
       |> assign(:current_driver, nil)
       |> set_current()
 

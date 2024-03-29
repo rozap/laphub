@@ -14,6 +14,11 @@ class Emitter<E> {
   }
 
   emit = (event: string, value: E) => {
+    if (event !== 'hover') {
+
+      console.log('emit', event, value);
+    }
+
     (this.handlers[event] || []).forEach(cb => cb(value))
   }
 }

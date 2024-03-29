@@ -3,6 +3,11 @@ import { RangeLike, Widget, WidgetState, WidgetStateEvent } from './widget';
 class DateRange extends Widget {
 
   init() {
+    this.emitter.on('range', (value) => {
+      if (value.type === 'range') {
+        this.hook.pushEvent('set_range', value.range);
+      }
+    })
     this.hook.handleEvent('set_range', ({ range }: { range: RangeLike }) => {
       console.log('set_Range', range);
       this.emit({

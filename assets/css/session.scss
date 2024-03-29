@@ -13,6 +13,17 @@
       border-bottom: 1px solid var(--muted-border-color);
     }
   }
+
+
+  .widgets {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+
+    .widget-wrap {
+      padding: $base-padding * 0.5;
+    }
+  }
 }
 
 .laptimes-component {

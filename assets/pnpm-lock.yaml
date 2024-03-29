@@ -5,6 +5,7 @@ specifiers:
   '@types/phoenix_live_view': ^0.15.1
   leaflet: 1.8.0
   phoenix_typed_hook: file:../deps/phoenix_typed_hook
+  sortablejs: 1.15.2
   underscore: 1.13.4
   uplot: ^1.6.21
 
@@ -12,6 +13,7 @@ dependencies:
   '@types/leaflet': 1.7.11
   leaflet: 1.8.0
   phoenix_typed_hook: file:../deps/phoenix_typed_hook_iz7pew2hkfdo7ewuv65nmud55u
+  sortablejs: 1.15.2
   underscore: 1.13.4
   uplot: 1.6.21
 
@@ -40,6 +42,10 @@ packages:
 
   /leaflet/1.8.0:
     resolution: {integrity: sha512-gwhMjFCQiYs3x/Sf+d49f10ERXaEFCPr+nVTryhAW8DWbMGqJqt9G4XuIaHmFW08zYvhgdzqXGr8AlW8v8dQkA==}
+    dev: false
+
+  /sortablejs/1.15.2:
+    resolution: {integrity: sha512-FJF5jgdfvoKn1MAKSdGs33bIqLi3LmsgVTliuX6iITj834F+JRQZN90Z93yql8h0K2t0RwDPBmxwlbZfDcxNZA==}
     dev: false
 
   /underscore/1.13.4:

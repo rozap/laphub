@@ -1,8 +1,6 @@
 defmodule LaphubWeb.Components.FaultComponent do
   use Phoenix.LiveView
   import LaphubWeb.Components.Util
-  alias Laphub.Laps.{ActiveSesh}
-  alias Laphub.Laps.Timeseries
 
   def mount(_, _, socket) do
     {:ok, assign(socket, :state, :uninit)}
@@ -13,8 +11,7 @@ defmodule LaphubWeb.Components.FaultComponent do
   end
 
   def handle_event("test-sound", _, socket) do
-    send(self(), {:push_event, "fault:test", %{}})
-    {:noreply, socket}
+    {:noreply, push_event(socket, "fault:test", %{})}
   end
 
   def render_ok(assigns) do

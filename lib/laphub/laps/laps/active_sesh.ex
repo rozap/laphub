@@ -74,7 +74,7 @@ defmodule Laphub.Laps.ActiveSesh do
       end)
 
     range = {from_k, to_k} = playback_existing_range(sesh, state)
-
+    IO.inspect({:range, range})
     from_range = Time.key_to_datetime(from_k)
     to_range = Time.key_to_datetime(to_k)
     Logger.info("Started sesh #{sesh.id} with range #{from_range}:#{to_range}")
@@ -106,7 +106,7 @@ defmodule Laphub.Laps.ActiveSesh do
   end
 
   def merge_range({l1, h1}, {l2, h2}) do
-    {min(l1, l2), max(h1, h2)}
+    {min(l1 || l2, l2 || l1), max(h1 || h2, h2 || h1)}
   end
 
   def update_range({l1, h1}, new_key) do
@@ -164,15 +164,17 @@ defmodule Laphub.Laps.ActiveSesh do
   defp get_or_create_timeseries(column, state) do
     case Map.get(state.timeseries, column) do
       nil ->
-        {series, new_sesh} = case lookup_series(state.sesh, column) do
-          nil ->
-            Logger.info("Creating new series: #{column}")
-            new_sesh = Repo.update!(Sesh.add_series(state.sesh, column))
-            {lookup_series(new_sesh, column), new_sesh}
+        {series, new_sesh} =
+          case lookup_series(state.sesh, column) do
+            nil ->
+              Logger.info("Creating new series: #{column}")
+              new_sesh = Repo.update!(Sesh.add_series(state.sesh, column))
+              {lookup_series(new_sesh, column), new_sesh}
 
-          series ->
-            {series, state.sesh}
-        end
+            series ->
+              {series, state.sesh}
+          end
+
         Logger.info("Init series: #{column}")
         {:ok, ts} = Timeseries.init(series.path)
         # PubSub.broadcast(

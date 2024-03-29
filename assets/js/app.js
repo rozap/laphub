@@ -9,6 +9,7 @@ import DateRange from './date-range';
 
 import Fault from './fault';
 import Emitter from './emitter';
+import Dnd from './dnd';
 
 // c = new Chart();
 let csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content")
@@ -31,7 +32,8 @@ const hooks = {
       new DateRange(this, emitter);
     }
   },
-  Fault
+  Fault,
+  Dnd
 }
 
 let liveSocket = new LiveSocket("/live", Socket, {

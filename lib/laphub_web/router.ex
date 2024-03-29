@@ -27,6 +27,8 @@ defmodule LaphubWeb.Router do
 
     live "/sessions", SessionsLive, :sessions
     live "/sessions/:session_id", SessionLive, :session
+    live "/sessions/:session_id/dash/:dash_id", SessionLive, :session
+
   end
 
   # Other scopes may use custom stacks.

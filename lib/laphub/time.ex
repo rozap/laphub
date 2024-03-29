@@ -17,8 +17,20 @@ defmodule Laphub.Time do
   def key_to_millis(key), do: String.to_integer(key)
   def key_to_second(key), do: trunc(String.to_integer(key) / 1000)
 
+  def second_to_key(seconds) when is_integer(seconds) do
+    seconds
+    |> DateTime.from_unix!()
+    |> to_key()
+  end
+
   def key_to_datetime(key) do
-    {:ok, dt} = DateTime.from_unix(String.to_integer(key), :millisecond)
+    millis =
+      case key do
+        b when is_binary(b) -> String.to_integer(b)
+        i when is_integer(i) -> i
+      end
+
+    {:ok, dt} = DateTime.from_unix(millis, :millisecond)
     DateTime.to_naive(dt)
   end
 
@@ -42,7 +54,7 @@ defmodule Laphub.Time do
 
   def subtract(key, seconds) do
     {i, ""} = Integer.parse(key)
-    to_string(i - (seconds * 1000))
+    to_string(i - seconds * 1000)
   end
 
   def now() do
@@ -51,26 +63,16 @@ defmodule Laphub.Time do
 
   def to_range(
         %{
-          "type" => "unix_millis_range",
+          "type" => "unix_second_range",
           "from" => from,
           "to" => to
         },
-        tz
+        _tz
       ) do
-    from_s =
-      DateTime.from_unix!(from, :second)
-      |> DateTime.to_unix(:millisecond)
-      |> to_string
+    from_s = DateTime.from_unix!(from, :second) |> to_key()
 
-    to_s =
-      DateTime.from_unix!(to, :second)
-      |> DateTime.to_unix(:millisecond)
-      |> to_string
+    to_s = DateTime.from_unix!(to, :second) |> to_key()
 
     {from_s, to_s}
-  end
-
-  def format(milliseconds) do
-
   end
 end

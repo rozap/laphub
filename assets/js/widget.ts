@@ -148,7 +148,7 @@ class Dimensions {
 }
 
 export interface RangeLike {
-  type: 'unix_millis_range',
+  type: 'unix_millis_range' | 'unix_second_range',
   from: number,
   to: number
 }
