@@ -1,7 +1,8 @@
 defmodule LapBasestation.Simulator do
   @dimension_lookup Enum.map(LapBasestation.Handler.dimensions(), fn {prefix, name, unit, _evname} ->
-    {name, prefix}
-  end) |> Enum.into(%{})
+                      {name, prefix}
+                    end)
+                    |> Enum.into(%{})
 
   defp send_temps_etc(pid) do
     simulated = [
@@ -10,7 +11,22 @@ defmodule LapBasestation.Simulator do
       :oil_temp,
       :coolant_temp,
       :voltage,
-      :rpm
+      :rpm,
+      :fuel_level,
+      :engine_status,
+      :advance,
+      :air_fuel_ratio,
+      :intake_air_temp,
+      :sync_loss_count,
+      :vacuum,
+      :volumetric_efficiency,
+      :air_fuel_target,
+      :throttle_position,
+      :engine_protecc,
+      :fan_duty,
+      :status_1,
+      :status_3,
+      :status_4
     ]
 
     Enum.each(simulated, fn dimension ->
@@ -45,17 +61,19 @@ defmodule LapBasestation.Simulator do
     end)
     |> Stream.chunk_by(fn %{time: t} -> trunc(t) end)
     |> Stream.flat_map(fn chunk ->
-      gps_frame = Enum.map(chunk, fn %{time: t, lat: lat, lng: lng} ->
-        offset_millis = trunc((t - trunc(t)) * 1000)
-        "#{offset_millis}:#{lat},#{lng}"
-      end)
-      |> Enum.join("|")
+      gps_frame =
+        Enum.map(chunk, fn %{time: t, lat: lat, lng: lng} ->
+          offset_millis = trunc((t - trunc(t)) * 1000)
+          "#{offset_millis}:#{lat},#{lng}"
+        end)
+        |> Enum.join("|")
 
-      speed_frame = Enum.map(chunk, fn %{time: t, speed: speed} ->
-        offset_millis = trunc((t - trunc(t)) * 1000)
-        Enum.join([offset_millis, speed], ":")
-      end)
-      |> Enum.join("|")
+      speed_frame =
+        Enum.map(chunk, fn %{time: t, speed: speed} ->
+          offset_millis = trunc((t - trunc(t)) * 1000)
+          Enum.join([offset_millis, speed], ":")
+        end)
+        |> Enum.join("|")
 
       [{:gps, gps_frame}, {:speed, speed_frame}]
     end)
@@ -70,13 +88,13 @@ defmodule LapBasestation.Simulator do
     end)
   end
 
-
   def simulate(id, gps_loc \\ "../test/fixtures/theridge.csv") do
     {:ok, pid} = LapBasestation.up(id)
 
     spawn_link(fn ->
       send_temps_etc(pid)
     end)
+
     spawn_link(fn ->
       send_gps(gps_loc, pid)
     end)

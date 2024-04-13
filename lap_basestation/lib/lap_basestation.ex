@@ -17,7 +17,22 @@ defmodule LapBasestation do
       {"RSI", :rsi, :rsi, @singular},
       {"FLT", :fault, :none, @singular},
       {"GPS", :gps, :none, @multi},
-      {"SPD", :speed, :mph, @multi}
+      {"SPD", :speed, :mph, @multi},
+      {"GAS", :fuel_level, :pct, @singular},
+      {"S_E", :engine_status, :bitfield, @singular},
+      {"ADV", :advance, :degrees, @singular},
+      {"O_2", :air_fuel_ratio, :number, @singular},
+      {"IAT", :intake_air_temp, :degrees_f, @singular},
+      {"SLS", :sync_loss_count, :number, @singular},
+      {"MAP", :vacuum, :kpa, @singular},
+      {"V_E", :volumetric_efficiency, :pct, @singular},
+      {"AFT", :air_fuel_target, :number, @singular},
+      {"TPS", :throttle_position, :pct, @singular},
+      {"S_P", :engine_protecc, :bitfield, @singular},
+      {"FAN", :fan_duty, :number, @singular},
+      {"S_1", :status_1, :bitfield, @singular},
+      {"S_3", :status_3, :bitfield, @singular},
+      {"S_4", :status_4, :bitfield, @singular}
     ]
 
     def dimensions, do: @dimensions

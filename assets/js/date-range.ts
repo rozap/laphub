@@ -1,8 +1,14 @@
-import { RangeLike, Widget, WidgetState, WidgetStateEvent } from './widget';
+import { Hook } from 'phoenix_typed_hook';
+import Emitter from './emitter';
+import { RangeLike, Widget, WidgetEvent, WidgetInitEvent, WidgetState, WidgetStateEvent } from './widget';
 
-class DateRange extends Widget {
+class DateRange {
+  hook: Hook;
+  emitter: Emitter<WidgetEvent>;
 
-  init() {
+  constructor(h: Hook, emitter: Emitter<WidgetEvent>) {
+    this.hook = h;
+    this.emitter = emitter;
     this.emitter.on('range', (value) => {
       if (value.type === 'range') {
         this.hook.pushEvent('set_range', value.range);
@@ -15,7 +21,7 @@ class DateRange extends Widget {
         range
       })
     });
-    this.hook.handleEvent('set_widget_state', ({ state }: { state: WidgetState}) => {
+    this.hook.handleEvent('set_widget_state', ({ state }: { state: WidgetState }) => {
       this.emit({
         type: 'state',
         state
@@ -26,6 +32,10 @@ class DateRange extends Widget {
         state: ws.state
       })
     });
+  }
+
+  emit = (event: WidgetEvent) => {
+    this.emitter.emit(event.type, event);
   }
 
 }

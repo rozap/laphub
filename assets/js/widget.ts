@@ -179,17 +179,34 @@ export interface WidgetStateEvent {
   state: WidgetState
 }
 
-type WidgetEvent =
+export type WidgetEvent =
   WidgetHoverEvent |
   WidgetRangeEvent |
   WidgetStateEvent
 
+export interface DashWidget {
+  title: string; 
+  component: string;
+  columns: string[];
+  units: string | null;
+  style: {
+    width: number;
+    colors?: {
+      [column: string]: string
+    }
+  }
+}
 
-export class Widget {
+export interface WidgetInitEvent {
+  widget: DashWidget
+}
+
+
+export class Widget<WI extends WidgetInitEvent> {
   columns: string[] = [];
   dimensions: Dimensions;
-  hook: Hook;
   rows: Record<string, Row[]>;
+  hook: Hook;
   emitter: Emitter<WidgetEvent>;
   state: WidgetState;
 
@@ -198,7 +215,11 @@ export class Widget {
     this.emitter = emitter;
     this.dimensions = new Dimensions();
     this.state = 'realtime';
-    this.init();
+
+    console.log('construct', this.el.id)
+    this.hook.handleEvent(`init:${this.el.id}`, (ev: WI) => {
+      this.init(ev);
+    })
     this.getColumns().forEach(this.subscribeTo);
 
     emitter.on('range', (re: WidgetRangeEvent) => {
@@ -273,7 +294,7 @@ export class Widget {
     this.state = 'paused';
   }
 
-  init() {
+  init(w: WI) {
     // pls override
   }
 

@@ -22,9 +22,17 @@ defmodule LaphubWeb.Components.Widget do
           |> assign(:tz, "America/Los_Angeles")
           |> fetch()
 
+        socket =
+          socket
+          |> push_event("init:#{widget.id}", init_reply(socket, widget))
+
         {:ok, socket} = init(socket)
 
         {:ok, socket}
+      end
+
+      def init_reply(_socket, widget) do
+        %{widget: widget}
       end
 
       def init(socket) do
@@ -114,7 +122,7 @@ defmodule LaphubWeb.Components.Widget do
         socket
       end
 
-      defoverridable init: 1
+      defoverridable init: 1, init_reply: 2
     end
   end
 

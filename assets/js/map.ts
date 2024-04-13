@@ -1,6 +1,6 @@
 import Leaflet, { ImageOverlay } from 'leaflet';
 import { Row, Track } from './models';
-import { KV, Widget } from './widget';
+import { DashWidget, KV, Widget, WidgetInitEvent } from './widget';
 import _ from 'underscore';
 
 
@@ -51,25 +51,27 @@ interface Position {
   lat: number, lng: number
 }
 
-class Map extends Widget {
+type MapInitEvent = WidgetInitEvent & {
+  track: Track
+}
+
+class Map extends Widget<MapInitEvent> {
   _map: Leaflet.Map;
   marker: Leaflet.Marker | undefined;
   line: Leaflet.Polyline | undefined;
   sortedSpeeds: SortedSet;
   sortedCoords: SortedSet;
 
-  init() {
+  init({ track }: MapInitEvent) {
     if (this._map) {
       this._map.remove();
     }
-    this.hook.handleEvent('map:init', ({ track }: { track: Track }) => {
-      this._map = Leaflet.map('map').setView([track.coords[0].lat, track.coords[0].lon], 14);
-      Leaflet.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        maxZoom: 19,
-        attribution: '© OpenStreetMap'
-      }).addTo(this.map());
-      this.addMarker(track);
-    });
+    this._map = Leaflet.map(this.hook.el.id).setView([track.coords[0].lat, track.coords[0].lon], 14);
+    Leaflet.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+      attribution: '© OpenStreetMap'
+    }).addTo(this.map());
+    this.addMarker(track);
 
     this.sortedSpeeds = new SortedSet([]);
     this.sortedCoords = new SortedSet([]);

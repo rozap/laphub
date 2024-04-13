@@ -1,6 +1,6 @@
 # 🏎️ LapHub 🏁
 
-Welcome to our open source racing telemetry hub software! If you find bugs [please feel free to report them][bugs].
+Welcome to our open source racing telemetry hub software! If you find bugs [please feel free to report them][bugs]. 
 
 ## Setup
 
@@ -85,5 +85,5 @@ end)
 ```
 
 
-## Roadmap
-* dashboard create/save/DND interface
+## TODO
+* fix time selector 

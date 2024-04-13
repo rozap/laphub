@@ -98,6 +98,8 @@ defmodule LaphubWeb.Components.DateRangeComponent do
         }
       })
 
+    IO.inspect {:new_range, from_k, to_k}
+
     {:noreply, assign(socket, :range, new_range)}
   end
 

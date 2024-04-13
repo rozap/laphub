@@ -8,7 +8,7 @@ defmodule LaphubWeb.Components.ChartComponent do
   def render(assigns) do
     ~H"""
     <div phx-hook="Chart"
-      class="chart" id={@widget.title}>
+      class="chart" id={@widget.id}>
     </div>
     """
   end
