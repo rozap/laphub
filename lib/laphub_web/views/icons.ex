@@ -1,5 +1,5 @@
 defmodule LaphubWeb.Icons do
-  use LaphubWeb, :view
+  use Phoenix.LiveComponent
 
   @icons [
     "heart",
@@ -16,13 +16,13 @@ defmodule LaphubWeb.Icons do
   ]
 
   Enum.each(@icons, fn name ->
-    def unquote(String.replace(name, "-", "_") |> String.to_atom())(opts \\ []) do
+    def unquote(String.replace(name, "-", "_") |> String.to_atom())(assigns) do
       name = unquote(name)
-      class = Enum.join(["icon" | List.wrap(Keyword.get(opts, :class, []))], " ")
+      class = Enum.join(["icon" | List.wrap(Map.get(assigns, :class, []))], " ")
 
-      ~E"""
-      <svg viewBox="0 0 8 8" class="<%= class %>">
-        <use xlink:href="#<%= name %>" class="icon-<%= name %>"></use>
+      ~H"""
+      <svg viewBox="0 0 8 8" class={class}>
+        <use xlink:href={"##{name}"} class={"icon-#{name}"}></use>
       </svg>
       """
     end

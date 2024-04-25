@@ -2,14 +2,25 @@
   display: flex;
 
   .column-selector {
-    max-width: 320px;
-    border-right: 1px solid var(--muted-border-color);
-    padding: $base-padding;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: $base-padding;
+    label {
+      display: flex;
+      justify-content: space-between;
+      gap: $base-padding;
+      align-items: end;
+    }
   }
 
   .lap-viewer {
     flex-grow: 1;
     .toolbar {
+      display: flex;
+      gap: $base-padding;
+      align-items: baseline;
+      justify-content: space-between;
+      padding: $base-padding;
       border-bottom: 1px solid var(--muted-border-color);
     }
   }

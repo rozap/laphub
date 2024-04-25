@@ -14,7 +14,6 @@ import Dnd from './dnd';
 // c = new Chart();
 let csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content")
 
-
 const emitter = new Emitter();
 const hooks = {
   Chart: {

@@ -1,5 +1,5 @@
 defmodule LaphubWeb.SessionLive do
-  use LaphubWeb, :live_view
+  use Phoenix.LiveView
   import LaphubWeb.Components.CommonComponents
   require Logger
   import Ecto.Query
@@ -56,10 +56,17 @@ defmodule LaphubWeb.SessionLive do
   end
 
   def handle_event("dnd", %{"new" => new, "old" => old}, socket) do
-    dashboard =
-      Dashboard.reposition(socket.assigns.dashboard, old, new)
-      |> Repo.update!()
+    Dashboard.reposition(socket.assigns.dashboard, old, new)
+    |> Repo.update!()
+    |> update_dash
 
+    {:noreply, socket}
+  end
+
+  def handle_event("save", _, socket) do
+  end
+
+  def handle_info({:update_dash, dashboard}, socket) do
     dash_url =
       Router.session_path(LaphubWeb.Endpoint, :session, socket.assigns.sesh.id, dashboard.id, %{})
 
@@ -69,6 +76,10 @@ defmodule LaphubWeb.SessionLive do
       |> push_patch(to: dash_url, replace: true)
 
     {:noreply, socket}
+  end
+
+  def update_dash(dash) do
+    send(self(), {:update_dash, dash})
   end
 
   # def handle_info({DateRangeComponent, new_range}, socket) do
@@ -90,7 +101,30 @@ defmodule LaphubWeb.SessionLive do
             "sesh" => @sesh
           }
         ) %>
+        <.live_component
+          module={ColumnSelector}
+          id="column-selector"
+          columns={ActiveSesh.columns(@pid)}
+          selected={
+            Enum.flat_map(@dashboard.widgets, fn w ->
+              w.columns
+            end)
+            |> MapSet.new
+          }
+          on_add={fn column ->
+            Dashboard.add_chart(assigns.dashboard, column)
+            |> Repo.update!
+            |> update_dash()
+          end}
+          on_delete={fn column ->
+            Dashboard.remove_chart(assigns.dashboard, column)
+            |> Repo.update!
+            |> update_dash()
+          end} />
       </div>
+
+
+
       <div phx-hook="Dnd" id="widgets" class="widgets">
       <%= for w <- @dashboard.widgets do %>
           <div style={Widget.make_style(w)} class="widget-wrap">

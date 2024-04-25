@@ -1,10 +1,10 @@
 defmodule LaphubWeb.SessionsLive do
-  use LaphubWeb, :live_view
+  use Phoenix.LiveView
   import LaphubWeb.Components.CommonComponents
   alias LaphubWeb.SessionView
   alias Laphub.Laps.{Sesh}
   alias Laphub.Repo
-  alias LaphubWeb.Router.Helpers, as: Router
+  alias LaphubWeb.Router.Helpers, as: Routes
 
   def mount(_params, %{"user" => user}, socket) do
     socket =
@@ -75,7 +75,7 @@ defmodule LaphubWeb.SessionsLive do
 
     socket =
       socket
-      |> put_flash(:info, gettext("Your session has been created"))
+      |> put_flash(:info, "Your session has been created")
       |> push_redirect(to: Routes.session_path(socket, :session, sesh.id))
 
     {:noreply, socket}

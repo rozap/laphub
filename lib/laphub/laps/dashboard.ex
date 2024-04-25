@@ -32,6 +32,36 @@ defmodule Laphub.Laps.Dashboard do
     |> cast_embed(:widgets)
   end
 
+  @colors [
+    "#0d0305",
+    "#3c3444",
+    "#6e576e",
+    "#917d9b",
+    "#5f4f47",
+    "#851246",
+    "#d72048",
+    "#7d322f",
+    "#9d4c2f",
+    "#c65e2d",
+    "#f96a2d",
+    "#ffa300",
+    "#e29138",
+    "#f7c233",
+    "#11442c",
+    "#287a33",
+    "#52b139",
+    "#8ae931",
+    "#0e131e",
+    "#203c62",
+    "#2a69b0",
+    "#00a1de",
+    "#6bdad5",
+    "#a52eb8",
+    "#f7406e",
+    "#fc83a2",
+    "#fba176"
+  ]
+
   def default(user) do
     %__MODULE__{
       name: "Default",
@@ -42,7 +72,7 @@ defmodule Laphub.Laps.Dashboard do
           component: "drivers",
           columns: ["drivers"],
           style: %{
-            width: 4
+            "width" => 4
           }
         },
         %DashWidget{
@@ -50,89 +80,7 @@ defmodule Laphub.Laps.Dashboard do
           component: "fault",
           columns: [],
           style: %{
-            width: 4
-          }
-        },
-        %DashWidget{
-          title: "temperatures",
-          component: "chart",
-          columns: ["coolant_temp"],
-          units: "degrees_f",
-          style: %{
-            width: 4,
-            colors: %{
-              "coolant_temp" => "red"
-            }
-          }
-        },
-        %DashWidget{
-          title: "pressures",
-          component: "chart",
-          columns: ["oil_pres"],
-          units: "pressure_psi",
-          style: %{
-            width: 4,
-            colors: %{
-              "oil_pres" => "blue"
-            }
-          }
-        },
-        %DashWidget{
-          title: "air-fuel",
-          component: "chart",
-          columns: ["air_fuel_ratio"],
-          units: nil,
-          style: %{
-            width: 4,
-            colors: %{
-              "air_fuel_ratio" => "orange"
-            }
-          }
-        },
-        %DashWidget{
-          title: "fuel level",
-          component: "chart",
-          columns: ["fuel_level"],
-          units: nil,
-          style: %{
-            width: 4,
-            colors: %{
-              "fuel_level" => "brown"
-            }
-          }
-        },
-        %DashWidget{
-          title: "volts",
-          component: "chart",
-          columns: ["voltage"],
-          units: "volts",
-          style: %{
-            width: 4,
-            colors: %{
-              "voltage" => "green"
-            }
-          }
-        },
-        %DashWidget{
-          title: "rpm",
-          component: "chart",
-          columns: ["rpm"],
-          style: %{
-            width: 4,
-            colors: %{
-              "rpm" => "cyan"
-            }
-          }
-        },
-        %DashWidget{
-          title: "speed",
-          component: "chart",
-          columns: ["speed"],
-          style: %{
-            width: 4,
-            colors: %{
-              "speed" => "pink"
-            }
+            "width" => 4
           }
         },
         %DashWidget{
@@ -140,7 +88,7 @@ defmodule Laphub.Laps.Dashboard do
           component: "map",
           columns: ["speed", "gps"],
           style: %{
-            width: 8
+            "width" => 4
           }
         },
         %DashWidget{
@@ -148,9 +96,8 @@ defmodule Laphub.Laps.Dashboard do
           component: "laptimes",
           columns: ["laps"],
           style: %{
-            width: 4
+            "width" => 4
           }
-
         }
       ]
     }
@@ -163,8 +110,48 @@ defmodule Laphub.Laps.Dashboard do
       List.delete_at(dashboard.widgets, prev_posn)
       |> List.insert_at(new_posn, widget)
 
-    changeset(dashboard, %{
-    })
+    changeset(dashboard, %{})
     |> put_embed(:widgets, widgets)
+  end
+
+  defp random_color(existing) do
+    used = Enum.flat_map(existing, fn w ->
+      case w do
+        %{style: %{"colors" => m}} -> Map.values(m)
+        _ -> []
+      end
+    end)
+    |> MapSet.new()
+
+    @colors
+    |> Enum.reject(fn c -> MapSet.member?(used, c) end)
+    |> Enum.random()
+  end
+
+  def add_chart(dashboard, column) do
+    w = %DashWidget{
+      title: column,
+      component: "chart",
+      columns: [column],
+      style: %{
+        width: 4,
+        colors: %{
+          column => random_color(dashboard.widgets)
+        }
+      }
+    }
+
+    changeset(dashboard, %{})
+    |> put_embed(:widgets, dashboard.widgets ++ [w])
+  end
+
+  def remove_chart(dashboard, column) do
+    changeset(dashboard, %{})
+    |> put_embed(
+      :widgets,
+      Enum.reject(dashboard.widgets, fn w ->
+        column in w.columns
+      end)
+    )
   end
 end

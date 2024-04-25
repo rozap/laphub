@@ -42,7 +42,7 @@ defmodule LaphubWeb.RegisterLive do
       <h1><%= gettext("Sign up") %></h1>
 
       <.form
-        let={f}
+        :let={f}
         for={@changeset}
         phx-trigger-action={@trigger_submit}
         phx-change="validate"

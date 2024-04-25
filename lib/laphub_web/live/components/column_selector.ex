@@ -1,42 +1,48 @@
 defmodule LaphubWeb.Components.ColumnSelector do
   use Phoenix.LiveComponent
   import LaphubWeb.Components.Util
+  alias LaphubWeb.Components.Modal
 
   def handle_event("toggle", %{"column" => column}, socket) do
-    selected = socket.assigns.selected_columns
+    selected = MapSet.new(socket.assigns.columns)
 
     selected =
-      if MapSet.member?(selected, column) do
-        MapSet.delete(selected, column)
+      if MapSet.member?(socket.assigns.selected, column) do
+        apply(socket.assigns.on_delete, [column])
       else
-        MapSet.put(selected, column)
+        apply(socket.assigns.on_add, [column])
       end
 
-    {:noreply, assign(socket, :selected_columns, selected)}
+    {:noreply, socket}
   end
 
   def render(assigns) do
     ~H"""
-    <ul>
-      <%= for c <- @columns do %>
-        <%
-          attributes = %{
-            "class" => classnames(%{
-              badge: true,
-              primary: MapSet.member?(@selected_columns, c)
-              })
-            }
-        %>
-        <li>
-          <a phx-target={@myself}
-            phx-click="toggle"
-            phx-value-column={c} {attributes}>
-            <%= c %>
-          </a>
-        </li>
-      <% end %>
-
-    </ul>
+    <div>
+      <.live_component module={Modal}
+      button="Columns"
+      title="Add Series"
+      id="column-modal"
+      >
+        <div class="column-selector">
+          <%= for c <- @columns do %>
+            <%
+            selected =  Enum.member?(@selected, c)
+              attributes = %{
+                "class" => classnames(%{
+                  badge: true,
+                  primary: selected
+                  })
+                }
+            %>
+              <label for={c}>
+                <%= c %>
+                <input role="switch" checked={selected} name={c} phx-value-column={c} phx-target={@myself} phx-click="toggle" type="checkbox" />
+              </label>
+          <% end %>
+        </div>
+      </.live_component>
+    </div>
     """
   end
 end

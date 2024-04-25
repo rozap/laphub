@@ -36,7 +36,7 @@ defmodule LaphubWeb.LoginLive do
       <p class="alert alert-info"><%= live_flash(@flash, :info) %></p>
       <p class="alert alert-error"><%= live_flash(@flash, :error) %></p>
 
-      <.form let={f} for={:user} phx-submit="save" phx-trigger-action={@trigger_submit} action={Routes.account_path(@socket, :login)}>
+      <.form :let={f} for={%{}} as={:user} phx-submit="save" phx-trigger-action={@trigger_submit} action={Routes.account_path(@socket, :login)}>
         <%= label f, :email, gettext("Email") %>
         <%= text_input f, :email, value: @email %>
         <%= error_tag f, :email %>

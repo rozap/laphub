@@ -171,10 +171,11 @@ defmodule LaphubWeb.Components.LaptimesComponent do
 
       <div class="pager">
         <a phx-click="prev">
-          <%= Icons.arrow_left %> Previous
+          <Icons.arrow_left />
+          Previous
         </a>
         <a phx-click="next">
-          Next <%= Icons.arrow_left %>
+          Next <Icons.arrow_right />
         </a>
       </div>
 
