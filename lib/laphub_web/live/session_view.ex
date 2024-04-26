@@ -63,6 +63,11 @@ defmodule LaphubWeb.SessionLive do
     {:noreply, socket}
   end
 
+  def handle_info({ActiveSesh, {:append, _key, _dimensions}}, socket) do
+    {:noreply, socket}
+
+  end
+
   def handle_event("save", _, socket) do
   end
 
@@ -81,6 +86,8 @@ defmodule LaphubWeb.SessionLive do
   def update_dash(dash) do
     send(self(), {:update_dash, dash})
   end
+
+
 
   # def handle_info({DateRangeComponent, new_range}, socket) do
   #   socket =
