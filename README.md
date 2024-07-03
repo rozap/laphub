@@ -66,8 +66,16 @@ For the server, top pane, you shouldn't need to restart it, but if you do, run
 # Laphub
 
 ## TODO
-* make series toggleable
-* only fetch series that are needed
+### Video
+* make port sticky - so if the session stops/starts then OBS doesn't need to use a new port - registry is probably not the move here
+* ideally use a token?
+
+### CRUD
+* team
+  * drivers within team
+* tracks
+
+
 
 ## iex
 

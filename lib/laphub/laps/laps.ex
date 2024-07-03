@@ -1,6 +1,6 @@
 defmodule Laphub.Laps do
   import Ecto.Query
-  alias Laphub.{Time, Repo}
+  alias Laphub.{Repo}
   alias Laphub.Laps.{Track, Sesh}
   require Logger
 

@@ -14,9 +14,14 @@ defmodule Laphub.Application do
       Supervisor.child_spec({Phoenix.PubSub, name: Laphub.PubSub}, id: :endpoint_pubsub),
       Supervisor.child_spec({Phoenix.PubSub, name: Laphub.InternalPubSub}, id: :internal_pubsub),
 
+      Registry.child_spec([
+        keys: :unique,
+        name: Laphub.Video.VideoServer.TcpServerRegistry
+      ]),
       # Start the Endpoint (http/https)
       LaphubWeb.Endpoint,
-      {Finch, name: Laphub.Http.TrackAddict}
+
+
       # Start a worker by calling: Laphub.Worker.start_link(arg)
       # {Laphub.Worker, arg}
     ]

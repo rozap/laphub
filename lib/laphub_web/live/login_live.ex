@@ -17,6 +17,7 @@ defmodule LaphubWeb.LoginLive do
         socket
       ) do
     socket = assign(socket, email: email, password: password)
+
     if Account.is_valid_email_password?(email, password) do
       Logger.info("#{email} has logged in")
       {:noreply, assign(socket, trigger_submit: true)}
@@ -25,7 +26,6 @@ defmodule LaphubWeb.LoginLive do
       {:noreply, put_flash(socket, :error, "Invalid username or password")}
     end
   end
-
 
   def render(assigns) do
     ~H"""
@@ -49,10 +49,9 @@ defmodule LaphubWeb.LoginLive do
         <%= submit gettext("Log in") %>
       </.form>
 
-      <%= live_redirect(
-        gettext("Don't have an account yet? Sign up."),
-        to: Routes.register_path(LaphubWeb.Endpoint, :register_form))
-      %>
+      <.link navigate={Routes.register_path(LaphubWeb.Endpoint, :register_form)}>
+      Don't have an account yet? Sign up.
+      </.link>
 
       <br>
 

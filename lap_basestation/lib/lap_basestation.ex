@@ -102,7 +102,7 @@ defmodule LapBasestation do
     end)
 
     defp dispatch("FLT:" <> fault, state) do
-      Logger.warn("Fault: #{fault}")
+      Logger.warning("Fault: #{fault}")
       state
     end
 
@@ -112,7 +112,7 @@ defmodule LapBasestation do
     end
 
     defp dispatch(unknown, state) do
-      Logger.warn("Unknown message #{unknown}")
+      Logger.warning("Unknown message #{unknown}")
       state
     end
 
@@ -137,7 +137,9 @@ defmodule LapBasestation do
   end
 
   def up(id, port \\ "/dev/ttyACM0") do
-    {:ok, socket} = PhoenixClient.Socket.start_link(url: "ws://localhost:5000/socket/websocket")
+    {:ok, socket} = PhoenixClient.Socket.start_link(
+      url: "ws://localhost:5000/socket/websocket"
+    )
     :ok = await_up(socket, 0)
 
     {:ok, pid} = Circuits.UART.start_link()

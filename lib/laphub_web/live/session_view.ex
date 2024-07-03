@@ -1,6 +1,5 @@
 defmodule LaphubWeb.SessionLive do
   use Phoenix.LiveView
-  import LaphubWeb.Components.CommonComponents
   require Logger
   import Ecto.Query
   alias LaphubWeb.Router.Helpers, as: Router
@@ -14,8 +13,8 @@ defmodule LaphubWeb.SessionLive do
     MapComponent,
     LaptimesComponent,
     FaultComponent,
-    TrackAddictComponent,
-    DriversComponent
+    DriversComponent,
+    VideoComponent
   }
 
   alias Laphub.{Time, Laps, Repo}
@@ -63,12 +62,12 @@ defmodule LaphubWeb.SessionLive do
     {:noreply, socket}
   end
 
-  def handle_info({ActiveSesh, {:append, _key, _dimensions}}, socket) do
-    {:noreply, socket}
-
+  def handle_event("save", _, socket) do
   end
 
-  def handle_event("save", _, socket) do
+
+  def handle_info({ActiveSesh, {:append, _key, _dimensions}}, socket) do
+    {:noreply, socket}
   end
 
   def handle_info({:update_dash, dashboard}, socket) do
@@ -83,11 +82,10 @@ defmodule LaphubWeb.SessionLive do
     {:noreply, socket}
   end
 
+
   def update_dash(dash) do
     send(self(), {:update_dash, dash})
   end
-
-
 
   # def handle_info({DateRangeComponent, new_range}, socket) do
   #   socket =
@@ -142,6 +140,7 @@ defmodule LaphubWeb.SessionLive do
                 "map" -> MapComponent
                 "laptimes" -> LaptimesComponent
                 "drivers" -> DriversComponent
+                "video" -> VideoComponent
               end
               modname = Atom.to_string(w_mod) |> String.split(".") |> List.last() |> to_string() |> String.downcase()
               id = "#{w.title}-#{modname}"

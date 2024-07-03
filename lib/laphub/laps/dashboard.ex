@@ -68,6 +68,14 @@ defmodule Laphub.Laps.Dashboard do
       user_id: user.id,
       widgets: [
         %DashWidget{
+          title: "video",
+          component: "video",
+          columns: [],
+          style: %{
+            "width" => 4
+          }
+        },
+        %DashWidget{
           title: "drivers",
           component: "drivers",
           columns: ["drivers"],

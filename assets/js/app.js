@@ -8,6 +8,7 @@ import Map from './map';
 import DateRange from './date-range';
 
 import Fault from './fault';
+import Video from './video';
 import Emitter from './emitter';
 import Dnd from './dnd';
 
@@ -31,6 +32,7 @@ const hooks = {
       new DateRange(this, emitter);
     }
   },
+  Video,
   Fault,
   Dnd
 }

@@ -5,6 +5,7 @@ defmodule Laphub.Laps.ActiveSesh do
   alias Laphub.Laps.Sesh
   alias Laphub.Repo
   alias Laphub.Time
+  alias  Laphub.Video.VideoServer
   require Logger
   alias Laphub.Laps.Reducers.{GpsToLap, BatchUnfolder}
 
@@ -74,9 +75,11 @@ defmodule Laphub.Laps.ActiveSesh do
       end)
 
     range = {from_k, to_k} = playback_existing_range(sesh, state)
-    IO.inspect({:range, range})
     from_range = Time.key_to_datetime(from_k)
     to_range = Time.key_to_datetime(to_k)
+
+    VideoServer.start_link(sesh, VideoServer.next_free_port())
+
     Logger.info("Started sesh #{sesh.id} with range #{from_range}:#{to_range}")
 
     state = %State{

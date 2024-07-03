@@ -29,6 +29,7 @@ defmodule LaphubWeb.Router do
     live "/sessions/:session_id", SessionLive, :session
     live "/sessions/:session_id/dash/:dash_id", SessionLive, :session
 
+    get "/hls/:session_id/:filename", HlsController, :index
   end
 
   # Other scopes may use custom stacks.

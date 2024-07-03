@@ -71,7 +71,7 @@ defmodule LaphubWeb.Components.DateRangeComponent do
     {:noreply, socket}
   end
 
-  def handle_event(which, %{"value" => local_iso} = wut, socket)
+  def handle_event(which, %{"value" => local_iso}, socket)
       when which in ["set_from_range", "set_to_range"] do
     {from_key, to_key} = socket.assigns.range
 

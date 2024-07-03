@@ -59,7 +59,7 @@ defmodule Laphub.Laps.Reducers.GpsToLap do
       {[{key, column, %{lat: lat, lng: lng}}] ++ lap_events, new_state}
     else
       e ->
-        Logger.warn("Dropping Gps sample, cannot parse: #{inspect e} #{inspect {lat, lng}}")
+        Logger.warning("Dropping Gps sample, cannot parse: #{inspect e} #{inspect {lat, lng}}")
         {[], state}
     end
   end

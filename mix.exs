@@ -53,13 +53,16 @@ defmodule Laphub.MixProject do
       {:comeonin, "~> 4.0"},
       {:argon2_elixir, "~> 1.2"},
       {:slugger, "~> 0.3.0"},
-      {:uuid, "~> 1.1"},
+      {:uuid, "~> 1.1", app: false},
       {:finch, "~> 0.12"},
       {:rocksdb, "~> 1.0"},
       {:tzdata, "~> 1.1"},
       {:nimble_csv, "~> 1.2"},
       {:phoenix_typed_hook, "~> 0.18.2"},
-      {:seg_seg, "~> 1.0"}
+      {:seg_seg, "~> 1.0"},
+      {:membrane_core, "~> 1.1"},
+      {:membrane_rtmp_plugin, "~> 0.23.3"},
+      {:membrane_http_adaptive_stream_plugin, "~> 0.18.4"}
     ]
   end
 

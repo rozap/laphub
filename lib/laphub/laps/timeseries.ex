@@ -13,7 +13,7 @@ defmodule Laphub.Laps.Timeseries do
           {:ok, db}
 
         {:error, {:db_open, e}} ->
-          Logger.warn("Failed to open #{e}")
+          Logger.warning("Failed to open #{e}")
           :ok = :rocksdb.repair(filename, [])
           :rocksdb.open(filename, create_if_missing: true)
       end
@@ -34,7 +34,7 @@ defmodule Laphub.Laps.Timeseries do
     {:ok, handle}
   end
 
-  def destroy_forever({path, db} = both) do
+  def destroy_forever({path, _db} = both) do
     close(both)
     File.rm_rf!(path)
   end

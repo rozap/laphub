@@ -34,7 +34,7 @@ defmodule LaphubWeb.TelemetryChannel do
         [offset, value] ->
           [{String.to_integer(offset), String.split(value, ",") |> Enum.map(&String.trim/1)}]
         _ ->
-          Logger.warn("Malformed frame entry #{row}, skipping")
+          Logger.warning("Malformed frame entry #{row}, skipping")
           []
       end
     end)

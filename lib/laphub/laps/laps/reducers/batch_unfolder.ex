@@ -3,7 +3,7 @@ defmodule Laphub.Laps.Reducers.BatchUnfolder do
   alias Laphub.Laps.Sesh
 
 
-  def init(%Sesh{} = sesh, _db) do
+  def init(%Sesh{} = _sesh, _db) do
     :nostate
   end
 
@@ -12,7 +12,7 @@ defmodule Laphub.Laps.Reducers.BatchUnfolder do
       {[{key, column, value}], state}
     else
       _ ->
-        Logger.warn("Dropping #{column} sample, cannot parse")
+        Logger.warning("Dropping #{column} sample, cannot parse")
         {[], state}
     end
   end

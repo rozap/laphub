@@ -1,6 +1,10 @@
 .session {
   display: flex;
 
+  video {
+    max-width: 100%;
+  }
+
   .column-selector {
     display: grid;
     grid-template-columns: 1fr 1fr;

@@ -23,6 +23,7 @@ defmodule LapBasestation.MixProject do
     [
       {:circuits_uart, "~> 1.3"},
       {:phoenix_client, "~> 0.11.1"},
+      {:websocket_client, "~> 1.5", override: true},
       {:jason, "~> 1.0"},
       {:nimble_csv, "~> 1.2"}
     ]

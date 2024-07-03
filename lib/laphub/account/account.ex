@@ -102,7 +102,6 @@ defmodule Laphub.Account do
 
   def change_user(cset_or_user, attrs) do
     cset_or_user
-    |> Util.clear_errors()
     |> User.changeset(attrs)
     |> Map.put(:action, :update)
   end
@@ -214,7 +213,7 @@ defmodule Laphub.Account do
         :ok
 
       %Subscription{id: id} ->
-        Logger.warn("Payout for deleted Subscription(#{id})")
+        Logger.warning("Payout for deleted Subscription(#{id})")
     end
   end
 
