@@ -1,4 +1,4 @@
-lockfileVersion: 5.4
+lockfileVersion: 5.3
 
 specifiers:
   '@types/leaflet': 1.7.11
@@ -14,7 +14,7 @@ dependencies:
   '@types/leaflet': 1.7.11
   hls.js: 1.5.11
   leaflet: 1.8.0
-  phoenix_typed_hook: file:../deps/phoenix_typed_hook_iz7pew2hkfdo7ewuv65nmud55u
+  phoenix_typed_hook: link:../deps/phoenix_typed_hook
   sortablejs: 1.15.2
   underscore: 1.13.4
   uplot: 1.6.21
@@ -36,11 +36,13 @@ packages:
 
   /@types/phoenix/1.6.1:
     resolution: {integrity: sha512-g2/8Ogi2zfiS25jdGT5iDSo5yjruhhXaOuOJCkOxMW28w16VxFvjtAXjBNRo7WlRS4+UXAMj3mK46UwieNM/5g==}
+    dev: true
 
   /@types/phoenix_live_view/0.15.1:
     resolution: {integrity: sha512-dWKwJ9xqCHW+3TVfCIVC6/6ZMpURlDcu9qakWL89H5iWoSXs5X7gaKKnPXc7a1IKULieZjHBVkCW0Ui9aRf3Bg==}
     dependencies:
       '@types/phoenix': 1.6.1
+    dev: true
 
   /hls.js/1.5.11:
     resolution: {integrity: sha512-q3We1izi2+qkOO+TvZdHv+dx6aFzdtk3xc1/Qesrvto4thLTT/x/1FK85c5h1qZE4MmMBNgKg+MIW8nxQfxwBw==}
@@ -60,15 +62,4 @@ packages:
 
   /uplot/1.6.21:
     resolution: {integrity: sha1-OQMPZNzPPHd84swEdC1GERzux/g=}
-    dev: false
-
-  file:../deps/phoenix_typed_hook_iz7pew2hkfdo7ewuv65nmud55u:
-    resolution: {directory: ../deps/phoenix_typed_hook, type: directory}
-    id: file:../deps/phoenix_typed_hook
-    name: phoenix_typed_hook
-    version: 0.18.2
-    peerDependencies:
-      '@types/phoenix_live_view': ^0.15.1
-    dependencies:
-      '@types/phoenix_live_view': 0.15.1
     dev: false

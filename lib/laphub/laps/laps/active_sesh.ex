@@ -59,6 +59,8 @@ defmodule Laphub.Laps.ActiveSesh do
   end
 
   def init([sesh]) do
+    Logger.metadata([sesh_id: sesh.id])
+    Logger.info("Starting sesh")
     sesh = Repo.preload(sesh, :track)
 
     state = %State{
@@ -77,10 +79,10 @@ defmodule Laphub.Laps.ActiveSesh do
     range = {from_k, to_k} = playback_existing_range(sesh, state)
     from_range = Time.key_to_datetime(from_k)
     to_range = Time.key_to_datetime(to_k)
-
-    VideoServer.start_link(sesh, VideoServer.next_free_port())
-
     Logger.info("Started sesh #{sesh.id} with range #{from_range}:#{to_range}")
+
+    VideoServer.start_link(sesh)
+
 
     state = %State{
       state

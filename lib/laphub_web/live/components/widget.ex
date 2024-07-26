@@ -114,7 +114,6 @@ defmodule LaphubWeb.Components.Widget do
                 %{t: key, value: value}
               end)
 
-            IO.inspect {:set_rows, socket.assigns.widget.title, column}
             send(parent, {:push_event, "set_rows:#{column}", %{column: column, rows: rows}})
           end)
         end)

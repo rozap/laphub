@@ -10,13 +10,15 @@ defmodule Laphub.Application do
       Laphub.Repo,
       # Start the Telemetry supervisor
       LaphubWeb.Telemetry,
+
+      Laphub.Video.VideoServer.RTMPServer,
       # Start the PubSub system
       Supervisor.child_spec({Phoenix.PubSub, name: Laphub.PubSub}, id: :endpoint_pubsub),
       Supervisor.child_spec({Phoenix.PubSub, name: Laphub.InternalPubSub}, id: :internal_pubsub),
 
       Registry.child_spec([
         keys: :unique,
-        name: Laphub.Video.VideoServer.TcpServerRegistry
+        name: Laphub.Video.VideoServer.VideoServerRegistry
       ]),
       # Start the Endpoint (http/https)
       LaphubWeb.Endpoint,

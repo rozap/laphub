@@ -61,7 +61,7 @@ defmodule Laphub.MixProject do
       {:phoenix_typed_hook, "~> 0.18.2"},
       {:seg_seg, "~> 1.0"},
       {:membrane_core, "~> 1.1"},
-      {:membrane_rtmp_plugin, "~> 0.23.3"},
+      {:membrane_rtmp_plugin, github: "membraneframework/membrane_rtmp_plugin"},
       {:membrane_http_adaptive_stream_plugin, "~> 0.18.4"}
     ]
   end

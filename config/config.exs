@@ -44,7 +44,7 @@ config :esbuild,
 # Configures Elixir's Logger
 config :logger, :console,
   format: "$time $metadata[$level] $message\n",
-  metadata: [:request_id],
+  metadata: [:pid, :module, :function, :request_id, :sesh_id],
   level: :info
 
 # Use Jason for JSON parsing in Phoenix

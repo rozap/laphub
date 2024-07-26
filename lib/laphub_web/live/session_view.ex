@@ -22,8 +22,9 @@ defmodule LaphubWeb.SessionLive do
 
   def mount(%{"session_id" => id} = params, %{"user" => user}, socket) do
     sesh = Laps.my_sesh(user.id, id)
-
     ActiveSesh.subscribe(sesh)
+    Logger.metadata([sesh_id: sesh.id])
+    Logger.info("Attempt to render")
     {:ok, pid} = ActiveSesh.get_or_start(sesh)
 
     socket =
