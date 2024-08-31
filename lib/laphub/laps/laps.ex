@@ -26,7 +26,7 @@ defmodule Laphub.Laps do
         s in Sesh,
         inner_join: t in assoc(s, :track),
         where: s.user_id == ^user_id and s.id == ^id,
-        preload: [:track]
+        preload: [:track, team: :teammates_users]
       )
     )
   end

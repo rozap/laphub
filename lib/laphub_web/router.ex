@@ -26,6 +26,10 @@ defmodule LaphubWeb.Router do
     live "/account/register", RegisterLive, :register_form
 
     live "/sessions", SessionsLive, :sessions
+    live "/teams", TeamsLive, :teams
+    live "/teams/new", TeamEditorLive, :team_editor
+    live "/teams/:team_id", TeamEditorLive, :team_editor
+
     live "/sessions/:session_id", SessionLive, :session
     live "/sessions/:session_id/dash/:dash_id", SessionLive, :session
 

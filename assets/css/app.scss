@@ -9,9 +9,7 @@
   box-sizing: border-box;
 }
 
-
-
-// https://hexdocs.pm/phoenix_live_view/form-bindings.html#phx-feedback-for
+// https://hexdocs.pm/phoenix_live_view/form-bindings.html
 .phx-no-feedback.invalid-feedback, .phx-no-feedback .invalid-feedback {
   display: none;
 }
@@ -57,10 +55,6 @@ ul {
   gap: $base-padding;
 }
 
-
-
-
-
 @include desktop {
   .only-mobile {
     display: none !important;
@@ -92,4 +86,22 @@ $icon-size: 22px;
 .text-muted {
   color: $gray-darker;
   margin: 0px;
+}
+
+.toast {
+  padding: $base-padding;
+  margin: $base-padding 0px;
+  border: 1px solid $gray;
+  border-radius: $border-radius;
+}
+
+.invalid-feedback {
+  color: $color-red;
+}
+
+section {
+  .section-title {
+    display: flex;
+    justify-content: space-between;
+  }
 }

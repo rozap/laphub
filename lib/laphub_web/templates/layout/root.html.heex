@@ -15,6 +15,7 @@
         <ul>
           <li><%= link "laps", to: "/", class: "only-desktop item" %></li>
           <li><%= live_redirect "Sessions", to: Routes.sessions_path(@conn, :sessions), class: "item" %></li>
+          <li><%= live_redirect "Teams", to: Routes.teams_path(@conn, :teams), class: "item" %></li>
 
           <li>
             <a href="/" class="only-mobile mobile-home">

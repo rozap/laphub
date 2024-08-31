@@ -47,7 +47,7 @@ defmodule Laphub.Video.VideoServer do
     end
 
     def handle_info({:client_connected, _app, stream_key}, server) do
-      Logger.warn("Unhandled message #{inspect(what)}")
+      Logger.info("Client connected #{stream_key}")
       {:noreply, server}
     end
 

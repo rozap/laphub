@@ -1,7 +1,8 @@
 defmodule Laphub.Laps.Sesh do
   use Ecto.Schema
   import Ecto.Changeset
-  alias Laphub.Laps.Track
+  alias Laphub.Account.User
+  alias Laphub.Laps.{Track, Team}
 
   defmodule Series do
     use Ecto.Schema
@@ -15,9 +16,10 @@ defmodule Laphub.Laps.Sesh do
 
   schema "lap_sesh" do
     field :title, :string
-    field :user_id, :id
     embeds_many :series, Series, on_replace: :delete
+    belongs_to :user, User
     belongs_to :track, Track
+    belongs_to :team, Team
 
     timestamps()
   end

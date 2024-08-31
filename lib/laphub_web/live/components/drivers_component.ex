@@ -7,7 +7,10 @@ defmodule LaphubWeb.Components.DriversComponent do
   def init(socket) do
     socket =
       socket
-      |> assign(:drivers, ["Gia", "Peaches", "Chris", "Steve"])
+      |> assign(:drivers, Enum.map(
+        socket.assigns.sesh.team.teammates_users, fn u ->
+          u.name
+        end))
       |> assign(:current_driver, nil)
       |> set_current()
 
