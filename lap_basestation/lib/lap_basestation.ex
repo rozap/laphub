@@ -1,8 +1,6 @@
 defmodule LapBasestation do
   defmodule Handler do
     use GenServer
-    require Logger
-
     @singular "sample"
     @multi "samples"
 
@@ -12,6 +10,7 @@ defmodule LapBasestation do
       {"T_C", :coolant_temp, :degrees_f, @singular},
       {"VBA", :voltage, :volt, @singular},
       {"P_O", :oil_pres, :psi, @singular},
+      {"P_F", :fuel_pres, :psi, @singular},
       {"RPM", :rpm, :rpm, @singular},
       {"MET", :met, :time, @singular},
       {"RSI", :rsi, :rsi, @singular},
@@ -41,7 +40,7 @@ defmodule LapBasestation do
       do: GenServer.start_link(__MODULE__, [uart_pid, port, socket, id])
 
     def init([uart_pid, port, socket, id]) do
-      Logger.info("Starting...")
+      IO.puts("Starting...")
 
       Circuits.UART.open(
         uart_pid,
@@ -52,7 +51,7 @@ defmodule LapBasestation do
       )
 
       {:ok, response, channel} = PhoenixClient.Channel.join(socket, "telemetry:#{id}")
-      Logger.info("Connected to phx channel: #{inspect(response)}")
+      IO.puts("Connected to phx channel: #{inspect(response)}")
       {:ok, {false, channel}}
     end
 
@@ -83,41 +82,55 @@ defmodule LapBasestation do
     defp convert(_, value), do: {:ok, value}
 
     defp loud(channel, event_name, label, value, unit) do
-      Logger.info("#{label} : #{value} #{unit}")
+      if String.valid?(value) do
+        plabel = String.pad_leading(to_string(label), 28)
+        pvalue = String.pad_trailing(String.trim_leading(to_string(value), "0"), 16)
+        punit = String.pad_leading(to_string(unit), 16)
+        IO.puts("#{plabel} #{pvalue} #{punit}")
 
-      with {:ok, value} <- convert(unit, value) do
-        :ok =
-          PhoenixClient.Channel.push_async(channel, event_name, %{
-            label: label,
-            value: value
-          })
+        with {:ok, value} <- convert(unit, value) do
+          :ok =
+            PhoenixClient.Channel.push_async(channel, event_name, %{
+              label: label,
+              value: value
+            })
+        end
+      else
+        IO.puts("Invalid string, not utf8")
       end
     end
 
     Enum.each(@dimensions, fn {prefix, name, units, event_name} ->
       defp dispatch("#{unquote(prefix)}:" <> value, {_, channel} = state) do
+        value = String.trim(value, "\r")
         loud(channel, unquote(event_name), unquote(name), value, unquote(units))
         state
       end
     end)
 
     defp dispatch("FLT:" <> fault, state) do
-      Logger.warning("Fault: #{fault}")
+      IO.puts("Fault: #{fault}")
       state
     end
 
     defp dispatch("init ok", {_, channel}) do
-      Logger.info("Basestation has (re)connected")
+      IO.puts("Basestation has (re)connected")
       {true, channel}
     end
 
+    defp dispatch("\r", state) do
+      IO.puts(Enum.join(List.duplicate("-", 80), ""))
+      state
+    end
+
     defp dispatch(unknown, state) do
-      Logger.warning("Unknown message #{unknown}")
+      IO.puts("")
+      IO.puts("Unknown message: #{inspect unknown}")
       state
     end
 
     def handle_info({:circuits_uart, _port, message}, state) do
-      state = dispatch(message, state)
+      state = message |> dispatch(state)
       {:noreply, state}
     end
   end

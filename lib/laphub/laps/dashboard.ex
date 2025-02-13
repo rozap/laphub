@@ -67,22 +67,22 @@ defmodule Laphub.Laps.Dashboard do
       name: "Default",
       user_id: user.id,
       widgets: [
-        %DashWidget{
-          title: "video",
-          component: "video",
-          columns: [],
-          style: %{
-            "width" => 4
-          }
-        },
-        %DashWidget{
-          title: "drivers",
-          component: "drivers",
-          columns: ["drivers"],
-          style: %{
-            "width" => 4
-          }
-        },
+        # %DashWidget{
+        #   title: "video",
+        #   component: "video",
+        #   columns: [],
+        #   style: %{
+        #     "width" => 4
+        #   }
+        # },
+        # %DashWidget{
+        #   title: "drivers",
+        #   component: "drivers",
+        #   columns: ["drivers"],
+        #   style: %{
+        #     "width" => 4
+        #   }
+        # },
         %DashWidget{
           title: "faults",
           component: "fault",
@@ -91,22 +91,22 @@ defmodule Laphub.Laps.Dashboard do
             "width" => 4
           }
         },
-        %DashWidget{
-          title: "position",
-          component: "map",
-          columns: ["speed", "gps"],
-          style: %{
-            "width" => 4
-          }
-        },
-        %DashWidget{
-          title: "laps",
-          component: "laptimes",
-          columns: ["laps"],
-          style: %{
-            "width" => 4
-          }
-        }
+        # %DashWidget{
+        #   title: "position",
+        #   component: "map",
+        #   columns: ["speed", "gps"],
+        #   style: %{
+        #     "width" => 4
+        #   }
+        # },
+        # %DashWidget{
+        #   title: "laps",
+        #   component: "laptimes",
+        #   columns: ["laps"],
+        #   style: %{
+        #     "width" => 4
+        #   }
+        # }
       ]
     }
   end
