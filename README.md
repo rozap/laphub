@@ -9,6 +9,7 @@ We use [asdf][asdf] for managing language dependencies for this project. If you 
 
 ### Dev dependencies
 
+* Run `scripts/create-postgres-user.bash` to create postgres user that local dev will user to access postgres
 * Run `mix setup` to install and setup project dependencies
 
 ## Running the base station

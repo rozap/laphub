@@ -55,7 +55,7 @@ defmodule Laphub.MixProject do
       {:slugger, "~> 0.3.0"},
       {:uuid, "~> 1.1", app: false},
       {:finch, "~> 0.12"},
-      {:rocksdb, "~> 1.0"},
+      {:rocksdb, "~> 1.9"},
       {:tzdata, "~> 1.1"},
       {:nimble_csv, "~> 1.2"},
       {:phoenix_typed_hook, "~> 0.18.2"},
